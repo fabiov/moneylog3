@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'gestionale',
+    'moneylog',
 ]
 
 MIDDLEWARE = [
@@ -135,23 +135,23 @@ UNFOLD = {
         "show_all_applications": True,  # Dropdown with all applications and models
         "navigation": [
             {
-                "title": "Gestionale",
+                "title": "MoneyLog",
                 "separator": True,
                 "items": [
                     {
                         "title": "Conti",
                         "icon": "account_balance",
-                        "link": "/admin/gestionale/account/",
+                        "link": "/admin/moneylog/account/",
                     },
                     {
                         "title": "Categorie",
                         "icon": "category",
-                        "link": "/admin/gestionale/category/",
+                        "link": "/admin/moneylog/category/",
                     },
                     {
                         "title": "Movimenti",
                         "icon": "sync_alt",
-                        "link": "/admin/gestionale/movement/",
+                        "link": "/admin/moneylog/movement/",
                     },
                 ],
             },

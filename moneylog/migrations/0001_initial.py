@@ -55,8 +55,8 @@ class Migration(migrations.Migration):
                 ('description', models.CharField(max_length=255)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('account', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='movements', to='gestionale.account')),
-                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='movements', to='gestionale.category')),
+                ('account', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='movements', to='moneylog.account')),
+                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='movements', to='moneylog.category')),
             ],
             options={
                 'verbose_name': 'Movimento',
