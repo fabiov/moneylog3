@@ -155,6 +155,22 @@ UNFOLD = {
                         "icon": "sync_alt",
                         "link": "/admin/moneylog/movement/",
                     },
+                    {
+                        "title": "Provvigioni",
+                        "icon": "savings",
+                        "link": "/admin/moneylog/provision/",
+                    },
+                ],
+            },
+            {
+                "title": "Account",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Preferenze",
+                        "icon": "tune",
+                        "link": "/admin/moneylog/setting/",
+                    },
                 ],
             },
         ],

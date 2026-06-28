@@ -110,3 +110,88 @@ class Movement(models.Model):
         ).order_by('-account_count').first()
 
         return result['account_id'] if result else None
+
+
+class Setting(models.Model):
+    """
+    Impostazioni globali per utente (record singleton).
+    Equivalente del modello Laravel Setting.
+    """
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='setting',
+    )
+    provisioning = models.BooleanField(
+        default=False,
+        verbose_name='Provisioning',
+        help_text='Abilita il provisioning automatico',
+    )
+    month = models.IntegerField(
+        default=1,
+        verbose_name='Mese',
+        help_text='Mese di riferimento (1-12)',
+    )
+    payday = models.IntegerField(
+        default=1,
+        verbose_name='Giorno di paga',
+        help_text='Giorno del mese in cui viene accreditato lo stipendio',
+    )
+    months = models.IntegerField(
+        default=12,
+        verbose_name='Mesi',
+        help_text='Numero di mesi da considerare nei calcoli',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'settings'
+        verbose_name = 'Impostazione'
+        verbose_name_plural = 'Impostazioni'
+
+    def __str__(self) -> str:
+        return f'Settings [{self.user}]'
+
+    @classmethod
+    def for_user(cls, user) -> 'Setting':
+        """Restituisce (o crea) il record singleton di impostazioni per l'utente."""
+        obj, _ = cls.objects.get_or_create(user=user)
+        return obj
+
+
+class Provision(models.Model):
+    """
+    Provvigione / accantonamento pianificato.
+    Equivalente del modello Laravel Provision.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='provisions',
+    )
+    date = models.DateField(
+        verbose_name='Data',
+        help_text='Data di competenza della provvigione',
+    )
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        verbose_name='Importo',
+        help_text='Importo della provvigione (positivo = entrata, negativo = uscita)',
+    )
+    description = models.CharField(
+        max_length=255,
+        verbose_name='Descrizione',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'provisions'
+        verbose_name = 'Provvigione'
+        verbose_name_plural = 'Provvigioni'
+        ordering = ['-date']
+
+    def __str__(self) -> str:
+        return f'{self.date} — {self.description} ({self.amount})'
