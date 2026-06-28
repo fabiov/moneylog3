@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import Min, Sum
 
 class Category(models.Model):
-    # Django crea automaticamente un id 'bigint auto_increment'
+    # Django automatically creates a 'bigint auto_increment' id
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='categories')
     name = models.CharField(max_length=255)
     active = models.BooleanField(default=True)
@@ -13,7 +13,7 @@ class Category(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'categories'  # Forza il nome della tabella come richiesto
+        db_table = 'categories'  # Forces the table name as required
         verbose_name = 'Categoria'
         verbose_name_plural = 'Categorie'
 
@@ -24,8 +24,8 @@ class Category(models.Model):
         now = timezone.now().date()
         from_date = now - relativedelta(months=months)
         
-        # Assumiamo che ci sia un modello Movement con una ForeignKey a Category
-        # (con related_name='movements'), e campi 'date' e 'amount'.
+        # Assumes a Movement model with a ForeignKey to Category
+        # (with related_name='movements'), and fields 'date' and 'amount'.
         first_movement_dict = self.movements.aggregate(min_date=Min('date'))
         first_movement_date = first_movement_dict['min_date']
 
@@ -97,8 +97,8 @@ class Movement(models.Model):
     def most_used_account_id(cls, user_id: int) -> int | None:
         from django.db.models import Count
         
-        # Filtriamo tramite la relazione con account (assumendo che user_id si trovi in Account)
-        # Se user_id si trova su Movement, cambia in `user_id=user_id`
+        # Filter via the account relation (assuming user_id lives on Account)
+        # If user_id is on Movement instead, change to `user_id=user_id`
         result = cls.objects.filter(
             account__user_id=user_id
         ).exclude(

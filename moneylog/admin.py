@@ -7,7 +7,7 @@ class AccountAdmin(ModelAdmin):
     list_display = ('name', 'status', 'created_at')
     search_fields = ('name',)
     list_filter = ('status', 'created_at')
-    exclude = ('user',)  # Nasconde il campo user dal form
+    exclude = ('user',)  # Hide the user field from the form
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -24,7 +24,7 @@ class CategoryAdmin(ModelAdmin):
     list_display = ('name', 'created_at', 'updated_at')
     search_fields = ('name',)
     list_filter = ('active', 'created_at')
-    exclude = ('user',)  # Nasconde il campo user dal form
+    exclude = ('user',)  # Hide the user field from the form
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -46,8 +46,8 @@ class MovementAdmin(ModelAdmin):
         qs = super().get_queryset(request)
         return qs.filter(account__user=request.user)
 
-    # Filtra i menu a tendina (dropdown) in fase di creazione del Movimento 
-    # per mostrare solo gli Account e le Categorie dell'utente loggato.
+    # Filter dropdown menus when creating a Movement
+    # to show only the Accounts and Categories of the logged-in user.
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "account":
             kwargs["queryset"] = Account.objects.filter(user=request.user)
