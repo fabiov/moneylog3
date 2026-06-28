@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'gestionale',
 ]
 
 MIDDLEWARE = [
@@ -126,3 +127,34 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Unfold UI Customization
+UNFOLD = {
+    "SIDEBAR": {
+        "show_search": True,  # Search in applications and models names
+        "show_all_applications": True,  # Dropdown with all applications and models
+        "navigation": [
+            {
+                "title": "Gestionale",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Conti",
+                        "icon": "account_balance",
+                        "link": "/admin/gestionale/account/",
+                    },
+                    {
+                        "title": "Categorie",
+                        "icon": "category",
+                        "link": "/admin/gestionale/category/",
+                    },
+                    {
+                        "title": "Movimenti",
+                        "icon": "sync_alt",
+                        "link": "/admin/gestionale/movement/",
+                    },
+                ],
+            },
+        ],
+    },
+}
