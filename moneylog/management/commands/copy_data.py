@@ -18,6 +18,10 @@ class Command(BaseCommand):
             "INSERT INTO categories (id, name, active, user_id, created_at, updated_at) "
             "VALUES (%s, %s, %s, %s, %s, %s)"
         )
+        insert_movements_query = (
+            "INSERT INTO movements (account_id, category_id, date, amount, description, created_at, updated_at) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        )
 
         # Enable autocommit for the destination to avoid transaction overhead
         dest_conn.autocommit = True
@@ -31,17 +35,24 @@ class Command(BaseCommand):
                 # while performing multiple operations, or execute directly
                 accounts_data = src_cursor.fetchall()
 
-                now = datetime.now()
                 for row in accounts_data:
                     dest_cursor.execute(insert_account_query, [row[0], row[1], row[2], row[3], now, now])
 
-                # 2. Process "second_table" (e.g., "profiles")
+                # 2. Process "categories" table
                 src_cursor.execute("SELECT id, name, active, user_id, created_at, updated_at FROM categories")
                 dest_cursor.execute("DELETE FROM categories")
 
                 categories_data = src_cursor.fetchall()
                 for row in categories_data:
                     dest_cursor.execute(insert_categories_query, [row[0], row[1], row[2], row[3], now, now])
+
+                # 3. Process "movements" table
+                src_cursor.execute("SELECT account_id, category_id, date, amount, description FROM movements")
+                dest_cursor.execute("DELETE FROM movements")
+
+                movements_data = src_cursor.fetchall()
+                for row in movements_data:
+                    dest_cursor.execute(insert_movements_query, [row[0], row[1], row[2], row[3], row[4], now, now])
 
             self.stdout.write(self.style.SUCCESS('Entrambe le tabelle sono state sincronizzate correttamente.'))
 
