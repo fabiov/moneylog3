@@ -70,7 +70,7 @@ def dashboard_callback(request, context):
         inc = movs.filter(amount__gt=0).aggregate(total=Sum('amount'))['total'] or 0.0
         exp = movs.filter(amount__lt=0).aggregate(total=Sum('amount'))['total'] or 0.0
         trend_data.append({
-            'month_label': d.strftime("%b '%y"),
+            'month_label': d.strftime("%m/%Y"),
             'income': float(inc),
             'expense': abs(float(exp)),
         })

@@ -2,6 +2,6 @@ setup:
 	pip install -r requirements.txt
 
 run:
-	./venv/bin/python3 manage.py runserver
+	. venv/bin/activate && python3 manage.py runserver
 venv:
 	source venv/bin/activate
