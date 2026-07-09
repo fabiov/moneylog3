@@ -1,3 +1,6 @@
+setup:
+	pip install -r requirements.txt
+
 run:
 	./venv/bin/python3 manage.py runserver
 venv:

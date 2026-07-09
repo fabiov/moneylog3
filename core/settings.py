@@ -63,7 +63,7 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -98,6 +98,12 @@ DATABASES = {
         'PORT': '3306',
     }
 }
+import sys
+if 'test' in sys.argv:
+    DATABASES['moneylog2'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
 
 
 # Password validation
@@ -140,6 +146,7 @@ STATIC_URL = 'static/'
 
 # Unfold UI Customization
 UNFOLD = {
+    "DASHBOARD_CALLBACK": "moneylog.dashboard.dashboard_callback",
     "SIDEBAR": {
         "show_search": True,  # Search in applications and models names
         "show_all_applications": True,  # Dropdown with all applications and models

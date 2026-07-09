@@ -1,0 +1,256 @@
+{% extends "admin/index.html" %}
+{% load i18n unfold %}
+
+{% block content %}
+    <!-- Include Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <div class="mb-6 flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Panorama Finanziario</h1>
+        
+        <!-- Month navigation -->
+        <div class="flex items-center gap-4 bg-gray-100 dark:bg-gray-800 p-2 rounded-lg">
+            <a href="{{ prev_month }}" class="text-gray-500 hover:text-gray-900 dark:hover:text-white flex items-center">
+                <span class="material-symbols-outlined text-sm">arrow_back_ios</span>
+            </a>
+            <span class="text-sm font-semibold whitespace-nowrap text-gray-900 dark:text-white">
+                {{ reference_date|date:"F Y" }}
+            </span>
+            <a href="{{ next_month }}" class="text-gray-500 hover:text-gray-900 dark:hover:text-white flex items-center">
+                <span class="material-symbols-outlined text-sm">arrow_forward_ios</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <!-- Balance Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center gap-3 mb-2 text-gray-500 dark:text-gray-400">
+                <span class="material-symbols-outlined">account_balance_wallet</span>
+                <h3 class="text-xs font-semibold uppercase tracking-wider">Patrimonio Totale</h3>
+            </div>
+            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ total_balance|floatformat:2 }}</div>
+        </div>
+
+        <!-- Income Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center gap-3 mb-2 text-emerald-500">
+                <span class="material-symbols-outlined">arrow_downward</span>
+                <h3 class="text-xs font-semibold uppercase tracking-wider">Entrate del Mese</h3>
+            </div>
+            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ month_income|floatformat:2 }}</div>
+        </div>
+
+        <!-- Expense Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center gap-3 mb-2 text-rose-500">
+                <span class="material-symbols-outlined">arrow_upward</span>
+                <h3 class="text-xs font-semibold uppercase tracking-wider">Uscite del Mese</h3>
+            </div>
+            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ month_expense|floatformat:2 }}</div>
+        </div>
+
+        <!-- Savings Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center gap-3 mb-2 text-primary-600">
+                <span class="material-symbols-outlined">savings</span>
+                <h3 class="text-xs font-semibold uppercase tracking-wider">Risparmio del Mese</h3>
+            </div>
+            <div class="text-3xl font-bold {% if month_savings >= 0 %}text-emerald-500{% else %}text-rose-500{% endif %}">
+                €{{ month_savings|floatformat:2 }}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        
+        <!-- Left Column: Trend & Categories -->
+        <div class="lg:col-span-2 flex flex-col gap-6">
+            <!-- 6 Months Trend -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Flusso di Cassa (Ultimi 6 mesi)</h2>
+                <div class="mt-4" style="height: 250px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Categories Breakdown -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Spese per Categoria (Mese corrente)</h2>
+                
+                {% if cat_breakdown %}
+                    <div class="space-y-4">
+                    {% for cat in cat_breakdown %}
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ cat.name }}</span>
+                                <span class="text-sm text-gray-500">€{{ cat.amount|floatformat:2 }} ({{ cat.pct }}%)</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                                <div class="bg-rose-500 h-2.5 rounded-full" style="width: {{ cat.pct }}%"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-gray-500">Nessuna spesa registrata in questo mese.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Provisioning & Accounts -->
+        <div class="lg:col-span-1 flex flex-col gap-6">
+            
+            {% if setting.provisioning %}
+            <!-- Provisioning -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Provisioning</h2>
+                    <div class="flex items-center gap-1 text-primary-600 bg-primary-50 dark:bg-primary-900/50 px-2 py-1 rounded text-xs font-semibold">
+                        €{{ provisioning_stats.total_provisions|floatformat:2 }}
+                    </div>
+                </div>
+
+                <div class="text-sm text-gray-500 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                    Fabbisogno Mensile Stimato: <strong class="text-gray-900 dark:text-white">€{{ provisioning_stats.total_monthly_needed|floatformat:2 }}</strong>
+                </div>
+
+                <div class="space-y-3 max-h-64 overflow-y-auto pr-2">
+                    {% for cat in provisioning_stats.categories %}
+                        <div class="flex items-start justify-between text-sm">
+                            <div>
+                                <span class="block font-medium text-gray-700 dark:text-gray-300">{{ cat.name }}</span>
+                                <span class="text-xs text-gray-500">Budget: €{{ cat.avg|floatformat:2 }}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="block font-medium {% if cat.status == 'over' %}text-rose-500{% else %}text-emerald-500{% endif %}">
+                                    €{{ cat.actual|floatformat:2 }}
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Accounts Snapshot -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">I tuoi Conti</h2>
+                
+                <ul class="space-y-4">
+                    {% for acc in accounts %}
+                    <li class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            {% if acc.status == 'active' %}
+                                <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full"></span>
+                            {% else %}
+                                <span class="w-2.5 h-2.5 bg-gray-400 rounded-full"></span>
+                            {% endif %}
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ acc.name }}</span>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-900 dark:text-white">€{{ acc.balance|floatformat:2 }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Trend Chart
+            const ctx = document.getElementById('trendChart');
+            if (ctx) {
+                // Parse python-supplied trend_data
+                const trendData = [
+                    {% for t in trend_data %}
+                        {
+                            label: "{{ t.month_label }}",
+                            income: {{ t.income|stringformat:"f" }},
+                            expense: {{ t.expense|stringformat:"f" }}
+                        }{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ];
+
+                const labels = trendData.map(d => d.label);
+                const incomes = trendData.map(d => d.income);
+                const expenses = trendData.map(d => d.expense);
+
+                // Use CSS variables for tailwind colors if available, or fallback
+                const primaryColor = '#10B981'; // Emerald 500
+                const dangerColor = '#F43F5E';  // Rose 500
+
+                new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Entrate',
+                                data: incomes,
+                                backgroundColor: primaryColor,
+                                borderRadius: 4,
+                                barPercentage: 0.8,
+                                categoryPercentage: 0.8
+                            },
+                            {
+                                label: 'Uscite',
+                                data: expenses,
+                                backgroundColor: dangerColor,
+                                borderRadius: 4,
+                                barPercentage: 0.8,
+                                categoryPercentage: 0.8
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 8
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(context.parsed.y);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(156, 163, 175, 0.1)' // Gray 400 with 0.1 opacity
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}
