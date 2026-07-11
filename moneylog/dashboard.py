@@ -1,3 +1,4 @@
+import calendar
 from datetime import date
 from dateutil.relativedelta import relativedelta
 from django.db.models import Sum, Q
@@ -100,12 +101,16 @@ def dashboard_callback(request, context):
         t['income_pct'] = int((t['income'] / max_trend_value) * 100)
         t['expense_pct'] = int((t['expense'] / max_trend_value) * 100)
 
-    # 5. Category Breakdown for the Reference Month
+    # 5. Category Breakdown for the Last N Months
     cat_breakdown = []
+    start_date = (reference_date - relativedelta(months=months_window - 1)).replace(day=1)
+    last_day = calendar.monthrange(reference_date.year, reference_date.month)[1]
+    end_date = reference_date.replace(day=last_day)
+
     for cat in user.categories.filter(active=True):
         spending = cat.movements.filter(
-            date__year=reference_date.year, 
-            date__month=reference_date.month,
+            date__gte=start_date, 
+            date__lte=end_date,
             amount__lt=0
         ).aggregate(total=Sum('amount'))['total'] or 0.0
         if spending < 0:
