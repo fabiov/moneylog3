@@ -23,7 +23,7 @@
     </div>
 
     <!-- Summary KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <!-- Balance Card -->
         <div class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-700">
             <div class="flex items-center gap-3 mb-2 text-gray-500 dark:text-gray-400">
@@ -31,6 +31,15 @@
                 <h3 class="text-xs font-semibold uppercase tracking-wider">Patrimonio Totale</h3>
             </div>
             <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ total_balance|floatformat:2 }}</div>
+        </div>
+
+        <!-- Spendable Total Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center gap-3 mb-2 text-primary-500 dark:text-primary-400">
+                <span class="material-symbols-outlined">payments</span>
+                <h3 class="text-xs font-semibold uppercase tracking-wider">Totale Spendibile</h3>
+            </div>
+            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ spendable_total|floatformat:2 }}</div>
         </div>
 
         <!-- Income Card -->

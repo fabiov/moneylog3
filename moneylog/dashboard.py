@@ -49,6 +49,18 @@ def dashboard_callback(request, context):
         })
         total_balance += float(bal)
 
+    # Spendable Total (Totale Spendibile)
+    category_movements_sum = Movement.objects.filter(
+        account__user=user, 
+        category__isnull=False
+    ).aggregate(total=Sum('amount'))['total'] or 0.0
+    
+    provisions_sum_total = Provision.objects.filter(
+        user=user
+    ).aggregate(total=Sum('amount'))['total'] or 0.0
+    
+    spendable_total = total_balance - float(category_movements_sum) - float(provisions_sum_total)
+
     # 3. Monthly Metrics
     monthly_movements = Movement.objects.filter(
         account__user=user,
@@ -147,6 +159,7 @@ def dashboard_callback(request, context):
         'next_month': f"?year={next_month.year}&month={next_month.month}",
         
         'total_balance': total_balance,
+        'spendable_total': spendable_total,
         'accounts': accounts_data,
         
         'month_income': month_income,

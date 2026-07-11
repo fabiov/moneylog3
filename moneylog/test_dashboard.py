@@ -47,6 +47,7 @@ class DashboardCallbackTest(TestCase):
         context = {}
         res = dashboard_callback(req, context)
         self.assertNotIn('total_balance', res)
+        self.assertNotIn('spendable_total', res)
 
     def test_dashboard_callback_authenticated_defaults_to_last_movement(self):
         req = self.factory.get('/')
@@ -56,8 +57,12 @@ class DashboardCallbackTest(TestCase):
 
         # Check basic stats injections
         self.assertIn('total_balance', res)
+        self.assertIn('spendable_total', res)
         # 2000 - 500 - 400 = 1100
         self.assertEqual(res['total_balance'], 1100.0)
+        
+        # spendable_total = total_balance (1100) - category_movements (1100) - provisions (500) = -500
+        self.assertEqual(res['spendable_total'], -500.0)
         
         # Reference date should be this_month
         self.assertEqual(res['reference_date'], self.this_month.date())
