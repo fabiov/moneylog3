@@ -107,6 +107,7 @@ def dashboard_callback(request, context):
     last_day = calendar.monthrange(reference_date.year, reference_date.month)[1]
     end_date = reference_date.replace(day=last_day)
 
+    actual_months = months_window if months_window > 0 else 1
     for cat in user.categories.filter(active=True):
         spending = cat.movements.filter(
             date__gte=start_date, 
@@ -114,9 +115,10 @@ def dashboard_callback(request, context):
             amount__lt=0
         ).aggregate(total=Sum('amount'))['total'] or 0.0
         if spending < 0:
+            avg_spending = round(abs(float(spending)) / actual_months, 2)
             cat_breakdown.append({
                 'name': cat.name,
-                'amount': abs(float(spending))
+                'amount': avg_spending
             })
     
     # Sort category breakdown desc
@@ -176,6 +178,7 @@ def dashboard_callback(request, context):
         'trend_data': trend_data,
         
         'cat_breakdown': cat_breakdown,
+        'total_month_cat_expense': total_month_cat_expense,
         'provisioning_stats': provisioning_stats,
         'setting': setting
     })
