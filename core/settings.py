@@ -95,9 +95,9 @@ DATABASES = {
     },
     'moneylog2': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'laravel',
-        'USER': 'sail',
-        'PASSWORD': 'password',
+        'NAME': 'moneylog2',
+        'USER': 'moneylog',
+        'PASSWORD': 'moneylog_password',
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }
