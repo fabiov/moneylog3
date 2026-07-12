@@ -160,6 +160,30 @@ def dashboard_callback(request, context):
             'categories': cat_stats
         }
 
+    # 7. Days to Payday
+    today = timezone.now().date()
+    payday_day = setting.payday
+    
+    try:
+        current_month_payday = today.replace(day=payday_day)
+    except ValueError:
+        last_day = calendar.monthrange(today.year, today.month)[1]
+        current_month_payday = today.replace(day=last_day)
+
+    if today < current_month_payday:
+        next_payday = current_month_payday
+    elif today == current_month_payday:
+        next_payday = today
+    else:
+        next_month_date = today + relativedelta(months=1)
+        try:
+            next_payday = next_month_date.replace(day=payday_day)
+        except ValueError:
+            last_day = calendar.monthrange(next_month_date.year, next_month_date.month)[1]
+            next_payday = next_month_date.replace(day=last_day)
+            
+    days_to_payday = (next_payday - today).days
+
     # Add custom variables to the context
     context.update({
         'reference_date': reference_date,
@@ -180,6 +204,7 @@ def dashboard_callback(request, context):
         'cat_breakdown': cat_breakdown,
         'total_month_cat_expense': total_month_cat_expense,
         'provisioning_stats': provisioning_stats,
+        'days_to_payday': days_to_payday,
         'setting': setting
     })
 

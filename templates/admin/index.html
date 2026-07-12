@@ -23,7 +23,7 @@
     </div>
 
     <!-- Summary KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-8">
         <!-- Balance Card -->
         <div class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-700">
             <div class="flex items-center gap-3 mb-2 text-gray-500 dark:text-gray-400">
@@ -49,6 +49,21 @@
                 <h3 class="text-xs font-semibold uppercase tracking-wider">Totale Spendibile</h3>
             </div>
             <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ spendable_total|floatformat:2 }}</div>
+        </div>
+
+        <!-- Payday Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center gap-3 mb-2 text-indigo-500 dark:text-indigo-400">
+                <span class="material-symbols-outlined">event</span>
+                <h3 class="text-xs font-semibold uppercase tracking-wider">Giorno di Paga</h3>
+            </div>
+            <div class="text-3xl font-bold text-gray-900 dark:text-white">
+                {% if days_to_payday == 0 %}
+                    Oggi
+                {% else %}
+                    -{{ days_to_payday }} <span class="text-lg font-normal text-gray-500 dark:text-gray-400">giorni</span>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Income Card -->
