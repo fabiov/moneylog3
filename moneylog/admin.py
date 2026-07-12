@@ -57,6 +57,21 @@ class MovementAdmin(ModelAdmin):
             kwargs["queryset"] = Category.objects.filter(user=request.user)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
+    def changelist_view(self, request, extra_context=None):
+        from django.db.models import Sum
+        active_accounts = Account.objects.filter(user=request.user).exclude(status='closed')
+        accounts_data = []
+        for acc in active_accounts:
+            bal = acc.movements.aggregate(total=Sum('amount'))['total'] or 0.0
+            accounts_data.append({
+                'name': acc.name,
+                'balance': float(bal)
+            })
+        
+        extra_context = extra_context or {}
+        extra_context['active_accounts_balances'] = accounts_data
+        return super().changelist_view(request, extra_context=extra_context)
+
 
 @admin.register(Setting)
 class SettingAdmin(ModelAdmin):
