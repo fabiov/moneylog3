@@ -183,6 +183,8 @@ def dashboard_callback(request, context):
             next_payday = next_month_date.replace(day=last_day)
             
     days_to_payday = (next_payday - today).days
+    
+    daily_budget = spendable_total / days_to_payday if days_to_payday > 0 else spendable_total
 
     # Add custom variables to the context
     context.update({
@@ -205,6 +207,7 @@ def dashboard_callback(request, context):
         'total_month_cat_expense': total_month_cat_expense,
         'provisioning_stats': provisioning_stats,
         'days_to_payday': days_to_payday,
+        'daily_budget': daily_budget,
         'setting': setting
     })
 
