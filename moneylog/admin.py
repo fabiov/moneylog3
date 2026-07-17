@@ -53,7 +53,7 @@ class MovementAdmin(ModelAdmin):
     # to show only the Accounts and Categories of the logged-in user.
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "account":
-            kwargs["queryset"] = Account.objects.filter(user=request.user)
+            kwargs["queryset"] = Account.objects.filter(user=request.user).exclude(status='closed')
         if db_field.name == "category":
             kwargs["queryset"] = Category.objects.filter(user=request.user)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
