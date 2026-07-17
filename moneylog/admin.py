@@ -43,6 +43,7 @@ class MovementAdmin(ModelAdmin):
     list_display = ('date', 'description', 'amount', 'category', 'account')
     search_fields = ('description',)
     list_filter = ('date', 'category', 'account')
+    list_before_template = "admin/moneylog/movement/accounts_cards.html"
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

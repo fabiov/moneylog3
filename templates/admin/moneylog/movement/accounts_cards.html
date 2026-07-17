@@ -1,0 +1,13 @@
+{% if active_accounts_balances %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+    {% for acc in active_accounts_balances %}
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-3 mb-2 text-gray-500 dark:text-gray-400">
+            <span class="material-symbols-outlined">account_balance_wallet</span>
+            <h3 class="text-xs font-semibold uppercase tracking-wider">{{ acc.name }}</h3>
+        </div>
+        <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ acc.balance|floatformat:2 }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
