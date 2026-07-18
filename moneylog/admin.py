@@ -2,8 +2,12 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from unfold.admin import ModelAdmin
-from unfold.contrib.filters.admin import RangeDateFilter, RangeNumericFilter
+from unfold.contrib.filters.admin import RangeDateFilter, RangeNumericFilter, RelatedDropdownFilter
 from .models import Category, Movement, Account, Setting, Provision
+
+class UserRelatedDropdownFilter(RelatedDropdownFilter):
+    def field_choices(self, field, request, model_admin):
+        return field.get_choices(include_blank=False, limit_choices_to={'user': request.user})
 
 @admin.register(Account)
 class AccountAdmin(ModelAdmin):
@@ -46,8 +50,8 @@ class MovementAdmin(ModelAdmin):
     list_filter = (
         ('date', RangeDateFilter),
         ('amount', RangeNumericFilter),
-        'category',
-        'account'
+        ('category', UserRelatedDropdownFilter),
+        ('account', UserRelatedDropdownFilter)
     )
     list_filter_submit = True
     list_before_template = "admin/moneylog/movement/accounts_cards.html"
