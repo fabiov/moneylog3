@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta
@@ -51,9 +51,14 @@ class Category(models.Model):
 
 
 class Account(models.Model):
+    class Status(models.TextChoices):
+        CLOSED = 'closed', 'Chiuso'
+        OPEN = 'open', 'Aperto'
+        MAIN = 'main', 'Principale'
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accounts', verbose_name="Utente")
     name = models.CharField(max_length=255, verbose_name="Nome")
-    status = models.CharField(max_length=50, default='active', verbose_name="Stato")  # e.g., 'active', 'closed'
+    status = models.CharField(max_length=50, choices=Status.choices, default=Status.OPEN, verbose_name="Stato")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creato il")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Aggiornato il")
 
@@ -64,6 +69,15 @@ class Account(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if self.status == self.Status.MAIN:
+            with transaction.atomic():
+                Account.objects.filter(
+                    user=self.user,
+                    status=self.Status.MAIN
+                ).exclude(pk=self.pk).update(status=self.Status.OPEN)
+        super().save(*args, **kwargs)
 
 
 class Movement(models.Model):
@@ -104,7 +118,7 @@ class Movement(models.Model):
         result = cls.objects.filter(
             account__user_id=user_id
         ).exclude(
-            account__status='closed'
+            account__status=Account.Status.CLOSED
         ).values(
             'account_id'
         ).annotate(
