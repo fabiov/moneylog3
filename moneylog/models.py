@@ -109,24 +109,6 @@ class Movement(models.Model):
     def __str__(self):
         return f"{self.date} - {self.description} ({self.amount})"
 
-    @classmethod
-    def most_used_account_id(cls, user_id: int) -> int | None:
-        from django.db.models import Count
-        
-        # Filter via the account relation (assuming user_id lives on Account)
-        # If user_id is on Movement instead, change to `user_id=user_id`
-        result = cls.objects.filter(
-            account__user_id=user_id
-        ).exclude(
-            account__status=Account.Status.CLOSED
-        ).values(
-            'account_id'
-        ).annotate(
-            account_count=Count('account_id')
-        ).order_by('-account_count').first()
-
-        return result['account_id'] if result else None
-
 
 class Setting(models.Model):
     """
