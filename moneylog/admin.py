@@ -23,7 +23,7 @@ class AccountAdmin(ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(ModelAdmin):
-    list_display = ('name', 'created_at', 'updated_at')
+    list_display = ('name', 'active', 'created_at', 'updated_at')
     search_fields = ('name',)
     list_filter = ('active', 'created_at')
     exclude = ('user',)  # Hide the user field from the form
