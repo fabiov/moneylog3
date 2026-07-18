@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from unfold.admin import ModelAdmin
+from unfold.contrib.filters.admin import RangeDateFilter, RangeNumericFilter
 from .models import Category, Movement, Account, Setting, Provision
 
 @admin.register(Account)
@@ -42,7 +43,13 @@ class CategoryAdmin(ModelAdmin):
 class MovementAdmin(ModelAdmin):
     list_display = ('date', 'description', 'amount', 'category', 'account')
     search_fields = ('description',)
-    list_filter = ('date', 'category', 'account')
+    list_filter = (
+        ('date', RangeDateFilter),
+        ('amount', RangeNumericFilter),
+        'category',
+        'account'
+    )
+    list_filter_submit = True
     list_before_template = "admin/moneylog/movement/accounts_cards.html"
 
     def get_queryset(self, request):

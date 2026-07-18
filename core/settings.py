@@ -134,6 +134,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 DATETIME_FORMAT = 'd/m/Y H:i'
 DATE_FORMAT = 'd/m/Y'
+DATE_INPUT_FORMATS = ['%Y-%m-%d', '%d/%m/%Y', '%d/%m/%y']
 
 LANGUAGE_CODE = 'it'
 
@@ -146,7 +147,6 @@ USE_TZ = True
 FORMAT_MODULE_PATH = [
     'formats',
 ]
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
