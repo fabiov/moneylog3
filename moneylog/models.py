@@ -6,11 +6,11 @@ from django.db.models import Min, Sum
 
 class Category(models.Model):
     # Django automatically creates a 'bigint auto_increment' id
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='categories')
-    name = models.CharField(max_length=255)
-    active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='categories', verbose_name="Utente")
+    name = models.CharField(max_length=255, verbose_name="Nome")
+    active = models.BooleanField(default=True, verbose_name="Attivo")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creato il")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Aggiornato il")
 
     class Meta:
         db_table = 'categories'  # Forces the table name as required
@@ -23,7 +23,7 @@ class Category(models.Model):
     def average(self, months: int) -> float:
         now = timezone.now().date()
         from_date = now - relativedelta(months=months)
-        
+
         # Assumes a Movement model with a ForeignKey to Category
         # (with related_name='movements'), and fields 'date' and 'amount'.
         first_movement_dict = self.movements.aggregate(min_date=Min('date'))
@@ -33,7 +33,7 @@ class Category(models.Model):
             from_date = first_movement_date
             delta = relativedelta(now, first_movement_date)
             months = delta.years * 12 + delta.months
-            
+
             if months == 0:
                 months = 1
 
@@ -43,7 +43,7 @@ class Category(models.Model):
         total_amount = self.movements.filter(date__gte=from_date).aggregate(
             total=Sum('amount')
         )['total']
-        
+
         if total_amount is None:
             total_amount = 0.0
 
@@ -51,11 +51,11 @@ class Category(models.Model):
 
 
 class Account(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accounts')
-    name = models.CharField(max_length=255)
-    status = models.CharField(max_length=50, default='active')  # e.g., 'active', 'closed'
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='accounts', verbose_name="Utente")
+    name = models.CharField(max_length=255, verbose_name="Nome")
+    status = models.CharField(max_length=50, default='active', verbose_name="Stato")  # e.g., 'active', 'closed'
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creato il")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Aggiornato il")
 
     class Meta:
         db_table = 'accounts'
@@ -70,20 +70,22 @@ class Movement(models.Model):
     account = models.ForeignKey(
         Account, 
         on_delete=models.CASCADE, 
-        related_name='movements'
+        related_name='movements',
+        verbose_name="Conto"
     )
     category = models.ForeignKey(
-        Category, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name='movements'
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='movements',
+        verbose_name="Categoria"
     )
-    date = models.DateField()
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    description = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    date = models.DateField(verbose_name="Data")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Importo")
+    description = models.CharField(max_length=255, verbose_name="Descrizione")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creato il")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Aggiornato il")
 
     class Meta:
         db_table = 'movements'
@@ -121,6 +123,7 @@ class Setting(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='setting',
+        verbose_name='Utente'
     )
     provisioning = models.BooleanField(
         default=False,
@@ -142,8 +145,8 @@ class Setting(models.Model):
         verbose_name='Mesi',
         help_text='Numero di mesi da considerare nei calcoli',
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Creato il')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Aggiornato il')
 
     class Meta:
         db_table = 'settings'
@@ -163,12 +166,12 @@ class Setting(models.Model):
 class Provision(models.Model):
     """
     Provvigione / accantonamento pianificato.
-    Equivalente del modello Laravel Provision.
     """
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='provisions',
+        verbose_name='Utente'
     )
     date = models.DateField(
         verbose_name='Data',
@@ -184,8 +187,8 @@ class Provision(models.Model):
         max_length=255,
         verbose_name='Descrizione',
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Creato il')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Aggiornato il')
 
     class Meta:
         db_table = 'provisions'
