@@ -55,6 +55,7 @@ class MovementAdmin(ModelAdmin):
     )
     list_filter_submit = True
     list_before_template = "admin/moneylog/movement/accounts_cards.html"
+    fields = ('amount', 'description', 'date', 'account', 'category')
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -66,6 +67,9 @@ class MovementAdmin(ModelAdmin):
             main_account = Account.objects.filter(user=request.user, status=Account.Status.MAIN).first()
             if main_account:
                 initial['account'] = main_account.pk
+        if 'date' not in initial:
+            from django.utils import timezone
+            initial['date'] = timezone.localdate()
         return initial
 
     # Filter dropdown menus when creating a Movement
