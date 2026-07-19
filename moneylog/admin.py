@@ -60,11 +60,20 @@ class MovementAdmin(ModelAdmin):
         qs = super().get_queryset(request)
         return qs.filter(account__user=request.user)
 
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        if 'account' not in initial:
+            main_account = Account.objects.filter(user=request.user, status=Account.Status.MAIN).first()
+            if main_account:
+                initial['account'] = main_account.pk
+        return initial
+
     # Filter dropdown menus when creating a Movement
     # to show only the Accounts and Categories of the logged-in user.
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "account":
-            kwargs["queryset"] = Account.objects.filter(user=request.user).exclude(status='closed')
+            kwargs["queryset"] = Account.objects.filter(user=request.user).exclude(status=Account.Status.CLOSED)
+            kwargs["empty_label"] = None
         if db_field.name == "category":
             kwargs["queryset"] = Category.objects.filter(user=request.user)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
