@@ -45,7 +45,12 @@ class CategoryAdmin(ModelAdmin):
 
 @admin.register(Movement)
 class MovementAdmin(ModelAdmin):
-    list_display = ('date', 'description', 'amount', 'category', 'account')
+    list_display = ('date', 'description', 'amount_display', 'account', 'category')
+
+    @admin.display(description="Importo", ordering="amount")
+    def amount_display(self, obj):
+        from django.utils.html import format_html
+        return format_html('<div class="text-right w-full block">{}</div>', obj.amount)
     search_fields = ('description',)
     list_filter = (
         ('date', RangeDateFilter),
@@ -76,10 +81,15 @@ class MovementAdmin(ModelAdmin):
     # to show only the Accounts and Categories of the logged-in user.
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "account":
-            kwargs["queryset"] = Account.objects.filter(user=request.user).exclude(status=Account.Status.CLOSED)
+            kwargs["queryset"] = (
+                Account.objects
+                .filter(user=request.user)
+                .exclude(status=Account.Status.CLOSED)
+                .order_by('name')
+            )
             kwargs["empty_label"] = None
         if db_field.name == "category":
-            kwargs["queryset"] = Category.objects.filter(user=request.user)
+            kwargs["queryset"] = Category.objects.filter(user=request.user).exclude(active=False).order_by('name')
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def changelist_view(self, request, extra_context=None):
@@ -161,11 +171,16 @@ class SettingAdmin(ModelAdmin):
 
 @admin.register(Provision)
 class ProvisionAdmin(ModelAdmin):
-    list_display = ('date', 'description', 'amount')
+    list_display = ('date', 'description', 'amount_display')
     search_fields = ('description',)
     list_filter = ('date',)
     date_hierarchy = 'date'
     exclude = ('user',)
+
+    @admin.display(description="Importo", ordering="amount")
+    def amount_display(self, obj):
+        from django.utils.html import format_html
+        return format_html('<div class="text-right w-full block">{}</div>', obj.amount)
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(user=request.user)
