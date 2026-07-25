@@ -1,5 +1,10 @@
 from .models import Category, Movement, Account, Setting, Provision
 from django.contrib import admin
+
+admin.site.site_header = "MoneyLog"
+admin.site.site_title = "MoneyLog"
+admin.site.index_title = "Cruscotto MoneyLog"
+
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.http import HttpResponseRedirect
 from django.urls import reverse
