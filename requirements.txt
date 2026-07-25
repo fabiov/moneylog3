@@ -1,7 +1,13 @@
 asgiref==3.11.1
 Django==6.0.7
+django-stubs==6.0.7
+django-stubs-ext==6.0.7
 django-unfold==0.100.0
+mysqlclient==2.2.8
+psycopg==3.3.4
+psycopg-binary==3.3.4
 python-dateutil==2.9.0.post0
 six==1.17.0
 sqlparse==0.5.5
-mysqlclient>=2.2.0
+types-PyYAML==6.0.12.20260724
+typing_extensions==4.16.0

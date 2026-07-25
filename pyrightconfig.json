@@ -1,0 +1,11 @@
+{
+    "venvPath": "/home/fabio/project/moneylog3",
+    "venv": ".venv",
+    "extraPaths": [
+        "/home/fabio/project/moneylog3/.venv/lib/python3.14/site-packages",
+        "/home/fabio/project/moneylog3"
+    ],
+    "djangoStubs": {
+        "enabled": true
+    }
+}
