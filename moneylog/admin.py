@@ -122,8 +122,8 @@ class SettingAdmin(ModelAdmin):
         (
             "📅 Calendario",
             {
-                "fields": ("month", "payday"),
-                "description": "Impostazioni relative al mese e al giorno di paga.",
+                "fields": ("payday",),
+                "description": "Impostazioni relative al giorno di paga.",
                 "classes": ["tab"],
             },
         ),

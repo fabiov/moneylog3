@@ -126,11 +126,6 @@ class Setting(models.Model):
         verbose_name='Provisioning',
         help_text='Abilita il provisioning automatico',
     )
-    month = models.IntegerField(
-        default=1,
-        verbose_name='Mese',
-        help_text='Mese di riferimento (1-12)',
-    )
     payday = models.IntegerField(
         default=1,
         verbose_name='Giorno di paga',

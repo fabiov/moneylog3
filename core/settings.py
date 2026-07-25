@@ -155,7 +155,7 @@ STATIC_URL = 'static/'
 
 # Unfold UI Customization
 UNFOLD = {
-    "SITE_HEADER": "MoneyLog",
+    "SITE_HEADER": "Cruscotto",
     "SITE_TITLE": "MoneyLog",
     "SITE_SYMBOL": "account_balance_wallet", # Nome dell'icona Material Symbols
     "DASHBOARD_CALLBACK": "moneylog.dashboard.dashboard_callback",
