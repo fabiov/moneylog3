@@ -155,10 +155,13 @@ STATIC_URL = 'static/'
 
 # Unfold UI Customization
 UNFOLD = {
+    "SITE_HEADER": "MoneyLog",
+    "SITE_TITLE": "MoneyLog",
+    "SITE_SYMBOL": "account_balance_wallet", # Nome dell'icona Material Symbols
     "DASHBOARD_CALLBACK": "moneylog.dashboard.dashboard_callback",
     "SIDEBAR": {
         "show_search": False,  # Search in applications and models names
-        "show_all_applications": True,  # Dropdown with all applications and models
+        "show_all_applications": False,  # Dropdown with all applications and models
         "navigation": [
             {
                 "title": "MoneyLog",
