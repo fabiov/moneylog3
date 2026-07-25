@@ -1,16 +1,15 @@
 services:
     db:
-        image: mysql:9.0
+        image: postgres:16-alpine
         restart: always
         environment:
-            MYSQL_DATABASE: moneylog
-            MYSQL_USER: moneylog
-            MYSQL_PASSWORD: moneylog_password
-            MYSQL_ROOT_PASSWORD: root_password
+            POSTGRES_DB: moneylog
+            POSTGRES_USER: moneylog
+            POSTGRES_PASSWORD: moneylog_password
         ports:
-            - "3306:3306"
+            - "5432:5432"
         volumes:
-            - mysql_data:/var/lib/mysql
+            - postgres_data:/var/lib/postgresql/data
 volumes:
-    mysql_data:
+    postgres_data:
         driver: local

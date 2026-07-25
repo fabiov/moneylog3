@@ -41,7 +41,7 @@ class Command(BaseCommand):
                 )
                 categories_data = src_cursor.fetchall()
                 for row in categories_data:
-                    dest_cursor.execute(insert_categories_query, [row[0], row[1], row[2], row[3], now, now])
+                    dest_cursor.execute(insert_categories_query, [row[0], row[1], bool(row[2]), row[3], now, now])
 
                 # 3. Process "movements" table
                 src_cursor.execute("SELECT account_id, category_id, date, amount, description FROM movements")

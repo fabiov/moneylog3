@@ -86,18 +86,18 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'moneylog',
         'USER': 'moneylog',
         'PASSWORD': 'moneylog_password',
         'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'PORT': '5432',
     },
     'moneylog2': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'moneylog2',
-        'USER': 'moneylog',
-        'PASSWORD': 'moneylog_password',
+        'NAME': 'laravel',
+        'USER': 'sail',
+        'PASSWORD': 'password',
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }
