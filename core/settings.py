@@ -157,12 +157,12 @@ STATIC_URL = 'static/'
 UNFOLD = {
     "DASHBOARD_CALLBACK": "moneylog.dashboard.dashboard_callback",
     "SIDEBAR": {
-        "show_search": True,  # Search in applications and models names
+        "show_search": False,  # Search in applications and models names
         "show_all_applications": True,  # Dropdown with all applications and models
         "navigation": [
             {
                 "title": "MoneyLog",
-                "separator": True,
+                "separator": False,
                 "items": [
                     {
                         "title": "Conti",
