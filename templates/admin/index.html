@@ -134,36 +134,9 @@
                 <div class="mt-4" style="height: 280px;">
                     <canvas id="balanceTrendChart"></canvas>
                 </div>
-            </div>
+            </div>        </div>
 
-            <!-- Categories Breakdown -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-5">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">Media spese per Categoria ({% if setting.months == 1 %}Mese corrente{% else %}Ultimi {{ setting.months }} mesi{% endif %})</h2>
-                    <span class="text-lg font-bold text-gray-900 dark:text-white">€{{ total_month_cat_expense|floatformat:2 }}</span>
-                </div>
-                
-                {% if cat_breakdown %}
-                    <div class="space-y-4">
-                    {% for cat in cat_breakdown %}
-                        <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ cat.name }}</span>
-                                <span class="text-sm text-gray-500">€{{ cat.amount|floatformat:2 }} ({{ cat.pct }}%)</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                                <div class="bg-rose-500 h-2.5 rounded-full" style="width: {{ cat.pct }}%"></div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="text-sm text-gray-500">Nessuna spesa registrata in questo mese.</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Right Column: Provisioning & Accounts -->
+        <!-- Right Column: Provisioning & Accounts & Categories -->
         <div class="lg:col-span-1 flex flex-col gap-6">
             
             {% if setting.provisioning %}
@@ -200,7 +173,10 @@
 
             <!-- Accounts Snapshot -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-5">
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">I tuoi Conti</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">I tuoi Conti</h2>
+                    <span class="text-lg font-bold text-gray-900 dark:text-white">€{{ total_balance|floatformat:2 }}</span>
+                </div>
                 
                 <ul class="space-y-4">
                     {% for acc in accounts %}
@@ -213,10 +189,39 @@
                             {% endif %}
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ acc.name }}</span>
                         </div>
-                        <span class="text-sm font-semibold text-gray-900 dark:text-white">€{{ acc.balance|floatformat:2 }}</span>
+                        <span class="text-sm text-gray-500">€{{ acc.balance|floatformat:2 }} ({{ acc.pct }}%)</span>
                     </li>
                     {% endfor %}
                 </ul>
+            </div>
+
+            <!-- Categories Breakdown -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+                        Media spese per Categoria<br>
+                        ({% if setting.months == 1 %}Mese corrente{% else %}Ultimi {{ setting.months }} mesi{% endif %})
+                    </h2>
+                    <span class="text-lg font-bold text-gray-900 dark:text-white">€{{ total_month_cat_expense|floatformat:2 }}</span>
+                </div>
+                
+                {% if cat_breakdown %}
+                    <div class="space-y-4">
+                    {% for cat in cat_breakdown %}
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ cat.name }}</span>
+                                <span class="text-sm text-gray-500">€{{ cat.amount|floatformat:2 }} ({{ cat.pct }}%)</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                                <div class="bg-rose-500 h-2.5 rounded-full" style="width: {{ cat.pct }}%"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-gray-500">Nessuna spesa registrata in questo mese.</p>
+                {% endif %}
             </div>
         </div>
     </div>

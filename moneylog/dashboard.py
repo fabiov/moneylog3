@@ -51,6 +51,10 @@ def dashboard_callback(request, context):
         })
         total_balance += float(bal)
 
+    for acc in accounts_data:
+        acc['pct'] = int((acc['balance'] / total_balance * 100)) if total_balance > 0 else 0
+
+
     # Spendable Total (Totale Spendibile)
     category_movements_sum = Movement.objects.filter(
         account__user=user, 
