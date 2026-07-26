@@ -5,7 +5,7 @@ setup:
 	python manage.py migrate
 
 run:
-	docker compose up -d
+# 	docker compose up -d
 	. .venv/bin/activate && python3 manage.py runserver
 
 venv:
