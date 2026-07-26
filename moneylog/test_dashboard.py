@@ -50,7 +50,7 @@ class DashboardCallbackTest(TestCase):
         self.assertNotIn('provisioned_total', res)
         self.assertNotIn('spendable_total', res)
 
-    def test_dashboard_callback_authenticated_defaults_to_last_movement(self):
+    def test_dashboard_callback_authenticated_defaults_to_current_date(self):
         req = self.factory.get('/')
         req.user = self.user
         context = {}

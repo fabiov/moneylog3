@@ -25,13 +25,9 @@ def dashboard_callback(request, context):
         req_month = int(request.GET.get('month'))
         reference_date = date(req_year, req_month, 1)
     except (TypeError, ValueError):
-        # Default to the most recent movement date, or current date
-        last_movement = Movement.objects.filter(account__user=user).order_by('-date').first()
-        if last_movement:
-            reference_date = date(last_movement.date.year, last_movement.date.month, 1)
-        else:
-            now = timezone.now().date()
-            reference_date = date(now.year, now.month, 1)
+        now = timezone.now().date()
+        reference_date = date(now.year, now.month, 1)
+
 
     # Next / Prev month
     prev_month = reference_date - relativedelta(months=1)
