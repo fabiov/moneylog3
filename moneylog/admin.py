@@ -179,8 +179,11 @@ class SettingAdmin(ModelAdmin):
 class ProvisionAdmin(ModelAdmin):
     list_display = ('date', 'description', 'amount_display')
     search_fields = ('description',)
-    list_filter = ('date',)
-    date_hierarchy = 'date'
+    list_filter = (
+        ('date', RangeDateFilter),
+        ('amount', RangeNumericFilter),
+    )
+    list_filter_submit = True
     exclude = ('user',)
 
     @admin.display(description="Importo", ordering="amount")
