@@ -117,6 +117,25 @@
                 </div>
             </div>
 
+            <!-- Balance Trend Chart (Ultimi 24 mesi) -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Andamento Patrimoniale nel Tempo (Saldi)</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Evoluzione del capitale totale negli ultimi 24 mesi</p>
+                    </div>
+                    {% if balance_trend_change != 0 %}
+                    <div class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold {% if balance_trend_change >= 0 %}bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400{% else %}bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400{% endif %}">
+                        <span class="material-symbols-outlined text-sm">{% if balance_trend_change >= 0 %}trending_up{% else %}trending_down{% endif %}</span>
+                        <span>{% if balance_trend_change >= 0 %}+{% endif %}€{{ balance_trend_change|floatformat:2 }} ({% if balance_trend_change >= 0 %}+{% endif %}{{ balance_trend_pct|floatformat:1 }}%)</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="mt-4" style="height: 280px;">
+                    <canvas id="balanceTrendChart"></canvas>
+                </div>
+            </div>
+
             <!-- Categories Breakdown -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-5">
                 <div class="flex justify-between items-center mb-4">
@@ -285,6 +304,93 @@
                                 beginAtZero: true,
                                 grid: {
                                     color: 'rgba(156, 163, 175, 0.1)' // Gray 400 with 0.1 opacity
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Balance Trend Line Chart
+            const balanceCtx = document.getElementById('balanceTrendChart');
+            if (balanceCtx) {
+                const balanceData = [
+                    {% for b in balance_trend_data %}
+                        {
+                            label: "{{ b.month_label }}",
+                            balance: {{ b.balance|stringformat:"f" }},
+                            net: {{ b.net|stringformat:"f" }}
+                        }{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ];
+
+                const balanceLabels = balanceData.map(d => d.label);
+                const balances = balanceData.map(d => d.balance);
+
+                const canvasCtx = balanceCtx.getContext('2d');
+                let gradient = canvasCtx.createLinearGradient(0, 0, 0, 280);
+                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.35)'); // Blue 500
+                gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+                new Chart(canvasCtx, {
+                    type: 'line',
+                    data: {
+                        labels: balanceLabels,
+                        datasets: [
+                            {
+                                label: 'Patrimonio Totale',
+                                data: balances,
+                                borderColor: '#3B82F6', // Blue 500
+                                backgroundColor: gradient,
+                                borderWidth: 2.5,
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 3,
+                                pointHoverRadius: 6,
+                                pointBackgroundColor: '#3B82F6',
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const val = context.parsed.y;
+                                        const idx = context.dataIndex;
+                                        const net = balanceData[idx] ? balanceData[idx].net : 0;
+                                        const netSign = net >= 0 ? '+' : '';
+                                        const netStr = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(net);
+                                        const balStr = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(val);
+                                        return [`Saldo: ${balStr}`, `Variazione Mese: ${netSign}${netStr}`];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(156, 163, 175, 0.1)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
+                                    }
                                 }
                             },
                             x: {

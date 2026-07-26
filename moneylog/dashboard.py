@@ -2,6 +2,7 @@ import calendar
 from datetime import date
 from dateutil.relativedelta import relativedelta
 from django.db.models import Sum, Q
+from django.db.models.functions import ExtractYear, ExtractMonth
 from django.utils import timezone
 from .models import Account, Movement, Category, Provision, Setting
 
@@ -100,6 +101,54 @@ def dashboard_callback(request, context):
     for t in trend_data:
         t['income_pct'] = int((t['income'] / max_trend_value) * 100)
         t['expense_pct'] = int((t['expense'] / max_trend_value) * 100)
+
+    # 4b. Capital / Balance Trend Over Time (Last 24 Months ending in reference_date)
+    num_balance_months = 24
+    balance_start_month_date = (reference_date - relativedelta(months=num_balance_months - 1)).replace(day=1)
+    last_day_ref = calendar.monthrange(reference_date.year, reference_date.month)[1]
+    balance_end_month_date = reference_date.replace(day=last_day_ref)
+
+    # Initial cumulative balance of active accounts prior to balance_start_month_date
+    initial_balance = Movement.objects.filter(
+        account__in=active_accounts,
+        date__lt=balance_start_month_date
+    ).aggregate(total=Sum('amount'))['total'] or 0.0
+    initial_balance = float(initial_balance)
+
+    # Monthly net movements in range
+    monthly_nets = Movement.objects.filter(
+        account__in=active_accounts,
+        date__gte=balance_start_month_date,
+        date__lte=balance_end_month_date
+    ).annotate(
+        y=ExtractYear('date'),
+        m=ExtractMonth('date')
+    ).values('y', 'm').annotate(net=Sum('amount'))
+
+    net_lookup = {(item['y'], item['m']): float(item['net']) for item in monthly_nets}
+
+    balance_trend_data = []
+    curr_bal = initial_balance
+    for i in range(num_balance_months):
+        d = balance_start_month_date + relativedelta(months=i)
+        net = net_lookup.get((d.year, d.month), 0.0)
+        curr_bal += net
+        balance_trend_data.append({
+            'month_label': d.strftime("%m/%Y"),
+            'year': d.year,
+            'month': d.month,
+            'net': round(net, 2),
+            'balance': round(curr_bal, 2)
+        })
+
+    balance_trend_change = 0.0
+    balance_trend_pct = 0.0
+    if balance_trend_data:
+        first_bal = balance_trend_data[0]['balance'] - balance_trend_data[0]['net']
+        last_bal = balance_trend_data[-1]['balance']
+        balance_trend_change = round(last_bal - first_bal, 2)
+        if first_bal != 0:
+            balance_trend_pct = round((balance_trend_change / abs(first_bal)) * 100, 1)
 
     # 5. Category Breakdown for the Last N Months
     cat_breakdown = []
@@ -202,6 +251,9 @@ def dashboard_callback(request, context):
         'month_savings': month_savings,
         
         'trend_data': trend_data,
+        'balance_trend_data': balance_trend_data,
+        'balance_trend_change': balance_trend_change,
+        'balance_trend_pct': balance_trend_pct,
         
         'cat_breakdown': cat_breakdown,
         'total_month_cat_expense': total_month_cat_expense,

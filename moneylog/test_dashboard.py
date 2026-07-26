@@ -81,6 +81,12 @@ class DashboardCallbackTest(TestCase):
         self.assertIsNotNone(res['provisioning_stats'])
         self.assertEqual(res['provisioning_stats']['total_provisions'], 500.0)
 
+        # Balance trend assertions
+        self.assertIn('balance_trend_data', res)
+        self.assertEqual(len(res['balance_trend_data']), 24)
+        # The last month in balance_trend_data should match total_balance (1100.0)
+        self.assertEqual(res['balance_trend_data'][-1]['balance'], 1100.0)
+
     def test_dashboard_callback_with_query_params(self):
         # Target last_month specifically
         req = self.factory.get(f'/?year={self.last_month.year}&month={self.last_month.month}')
@@ -92,3 +98,22 @@ class DashboardCallbackTest(TestCase):
         # Month flow should be 0 income, 400 expense
         self.assertEqual(res['month_income'], 0.0)
         self.assertEqual(res['month_expense'], 400.0)
+
+    def test_balance_trend_calculation(self):
+        req = self.factory.get('/')
+        req.user = self.user
+        context = {}
+        res = dashboard_callback(req, context)
+
+        trend = res['balance_trend_data']
+        self.assertEqual(len(trend), 24)
+        
+        # Verify the progression of balances:
+        # last_month had -400 movement
+        # this_month had +2000 -500 = +1500 net movement
+        # Final balance = 1100
+        self.assertEqual(res['total_balance'], 1100.0)
+        self.assertEqual(trend[-1]['balance'], 1100.0)
+        self.assertEqual(trend[-1]['net'], 1500.0)
+        self.assertEqual(trend[-2]['net'], -400.0)
+
