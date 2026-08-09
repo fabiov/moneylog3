@@ -49,6 +49,11 @@ if [ -f "$APP_DIR/requirements.txt" ]; then
     sudo -u "$TARGET_USER" "$APP_DIR/venv/bin/pip" install gunicorn
 fi
 
+if [ -f "$APP_DIR/manage.py" ]; then
+    echo "Collecting static files..."
+    sudo -u "$TARGET_USER" "$APP_DIR/venv/bin/python" "$APP_DIR/manage.py" collectstatic --noinput
+fi
+
 # 6. Configure Nginx
 echo "Configuring Nginx..."
 rm -f /etc/nginx/sites-enabled/default
@@ -57,6 +62,12 @@ cat << 'EOF' > /etc/nginx/sites-available/moneylog3
 server {
     listen 80;
     server_name _;
+
+    location /static/ {
+        alias /var/www/moneylog3/staticfiles/;
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
 
     location / {
         include proxy_params;
