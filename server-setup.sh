@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# Exit immediately if a command exits with a non-zero status
 set -e
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Error: This script must be run with root privileges (sudo)." >&2
+    exit 1
+fi
 
 # 1. Create and configure 2GB Swap space
 if [ ! -f /swapfile ]; then
@@ -10,40 +14,84 @@ if [ ! -f /swapfile ]; then
     chmod 600 /swapfile
     mkswap /swapfile
     swapon /swapfile
-    
-    # Make swap permanent
     echo '/swapfile none swap sw 0 0' >> /etc/fstab
-    
-    # Adjust swappiness for better performance on servers
     sysctl vm.swappiness=10
     echo 'vm.swappiness=10' >> /etc/sysctl.conf
-    
-    echo "Swap configured successfully."
 else
     echo "Swap file already exists. Skipping."
 fi
 
-# 2. Update system and install required packages
+# 2. Update system and install required packages (including build tools for mysqlclient)
 echo "Updating system packages..."
 apt-get update
 apt-get upgrade -y
+apt-get install -y python3 python3-pip python3-venv sqlite3 nginx ufw git curl pkg-config default-libmysqlclient-dev build-essential
 
-echo "Installing Python, SQLite, Nginx, and Git..."
-# We include python3-venv for virtual environment creation
-apt-get install -y python3 python3-pip python3-venv sqlite3 nginx git curl
+# 3. Configure Firewall
+echo "Configuring firewall..."
+ufw allow 'Nginx Full'
+ufw --force enable
 
-# 3. Create application directory
+# 4. Create application directory
 APP_DIR="/var/www/moneylog3"
 echo "Setting up application directory at $APP_DIR..."
 mkdir -p "$APP_DIR"
 
-# Change ownership to the current user (if run with sudo, changes to the invoking user)
-# If run as root, it stays root. Adjust as necessary for your deployment user.
 TARGET_USER=${SUDO_USER:-root}
 chown -R "$TARGET_USER":"$TARGET_USER" "$APP_DIR"
 
-# 4. Initialize Python Virtual Environment
-echo "Creating Python virtual environment..."
+# 5. Initialize Python Virtual Environment and install requirements
+echo "Creating Python virtual environment and installing packages..."
 sudo -u "$TARGET_USER" python3 -m venv "$APP_DIR/venv"
+if [ -f "$APP_DIR/requirements.txt" ]; then
+    sudo -u "$TARGET_USER" "$APP_DIR/venv/bin/pip" install --upgrade pip
+    sudo -u "$TARGET_USER" "$APP_DIR/venv/bin/pip" install -r "$APP_DIR/requirements.txt"
+    sudo -u "$TARGET_USER" "$APP_DIR/venv/bin/pip" install gunicorn
+fi
 
-echo "Setup complete. You can now clone your Django Unfold project into $APP_DIR and activate the virtual environment using: source $APP_DIR/venv/bin/activate"
+# 6. Configure Nginx
+echo "Configuring Nginx..."
+rm -f /etc/nginx/sites-enabled/default
+
+cat << 'EOF' > /etc/nginx/sites-available/moneylog3
+server {
+    listen 80;
+    server_name _;
+
+    location / {
+        include proxy_params;
+        proxy_pass http://127.0.0.1:8000;
+    }
+}
+EOF
+
+ln -sf /etc/nginx/sites-available/moneylog3 /etc/nginx/sites-enabled/
+nginx -t
+systemctl restart nginx
+
+# 7. Configure and start Gunicorn systemd service
+echo "Configuring Gunicorn service..."
+cat << EOF > /etc/systemd/system/gunicorn.service
+[Unit]
+Description=gunicorn daemon for moneylog3
+After=network.target
+
+[Service]
+User=$TARGET_USER
+Group=www-data
+WorkingDirectory=$APP_DIR
+ExecStart=$APP_DIR/venv/bin/gunicorn \\
+    --access-logfile - \\
+    --workers 2 \\
+    --bind 127.0.0.1:8000 \\
+    core.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl start gunicorn
+systemctl enable gunicorn
+
+echo "Setup completed successfully."

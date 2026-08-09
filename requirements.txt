@@ -3,7 +3,9 @@ Django==6.0.7
 django-stubs==6.0.7
 django-stubs-ext==6.0.7
 django-unfold==0.100.0
+gunicorn==26.0.0
 mysqlclient==2.2.8
+packaging==26.3
 psycopg==3.3.4
 psycopg-binary==3.3.4
 python-dateutil==2.9.0.post0
