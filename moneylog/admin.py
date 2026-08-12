@@ -52,6 +52,7 @@ class CategoryAdmin(ModelAdmin):
 @admin.register(Movement)
 class MovementAdmin(ModelAdmin):
     list_display = ('date', 'description', 'amount_display', 'account', 'category')
+    list_display_links = ('date', 'description', 'amount_display')
 
     @admin.display(description="Importo", ordering="amount")
     def amount_display(self, obj):
@@ -178,6 +179,7 @@ class SettingAdmin(ModelAdmin):
 @admin.register(Provision)
 class ProvisionAdmin(ModelAdmin):
     list_display = ('date', 'description', 'amount_display')
+    list_display_links = ('date', 'description', 'amount_display')
     search_fields = ('description',)
     list_filter = (
         ('date', RangeDateFilter),
