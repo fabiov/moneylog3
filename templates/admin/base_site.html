@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+{% load i18n static unfold %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <!-- PWA Manifest & Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/icon-180.png' %}">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MoneyLog">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .then(function(registration) {
+                        console.log('MoneyLog PWA Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.error('MoneyLog PWA Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+{% endblock %}

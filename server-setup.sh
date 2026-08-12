@@ -63,12 +63,18 @@ rm -f /etc/nginx/sites-enabled/default
 cat << 'EOF' > /etc/nginx/sites-available/moneylog3
 server {
     listen 80;
-    server_name _ moneylog.duckdns.org;
+    server_name moneylog.duckdns.org;
 
     location /static/ {
         alias /var/www/moneylog3/staticfiles/;
         expires 30d;
         add_header Cache-Control "public, no-transform";
+    }
+
+    location /sw.js {
+        include proxy_params;
+        proxy_pass http://127.0.0.1:8000;
+        add_header Service-Worker-Allowed "/";
     }
 
     location / {
