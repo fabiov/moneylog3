@@ -25,7 +25,9 @@ fi
 echo "Updating system packages..."
 apt-get update
 apt-get upgrade -y
-apt-get install -y python3 python3-pip python3-venv sqlite3 nginx ufw git curl pkg-config default-libmysqlclient-dev build-essential
+apt-get install -y \
+  build-essential certbot curl default-libmysqlclient-dev git nginx \
+  pkg-config sqlite3 ufw python3 python3-pip python3-certbot-nginx python3-venv
 
 # 3. Configure Firewall
 echo "Configuring firewall..."
@@ -61,7 +63,7 @@ rm -f /etc/nginx/sites-enabled/default
 cat << 'EOF' > /etc/nginx/sites-available/moneylog3
 server {
     listen 80;
-    server_name _;
+    server_name _ moneylog.duckdns.org;
 
     location /static/ {
         alias /var/www/moneylog3/staticfiles/;
@@ -104,5 +106,7 @@ EOF
 systemctl daemon-reload
 systemctl start gunicorn
 systemctl enable gunicorn
+
+certbot install --cert-name moneylog.duckdns.org -v
 
 echo "Setup completed successfully."
