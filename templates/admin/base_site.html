@@ -20,6 +20,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MoneyLog">
     <script>
+        try {
+            localStorage.setItem('adminTheme', '"light"');
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+        } catch(e) {}
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/sw.js', { scope: '/' })

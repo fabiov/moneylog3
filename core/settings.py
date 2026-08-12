@@ -169,6 +169,7 @@ UNFOLD = {
     "SITE_HEADER": "MoneyLog",
     "SITE_TITLE": "MoneyLog",
     "SITE_SYMBOL": "account_balance_wallet", # Nome dell'icona Material Symbols
+    "THEME": "light",
     "DASHBOARD_CALLBACK": "moneylog.dashboard.dashboard_callback",
     "SIDEBAR": {
         "show_search": False,  # Search in applications and models names
