@@ -18,6 +18,7 @@ class UserRelatedDropdownFilter(RelatedDropdownFilter):
 @admin.register(Account)
 class AccountAdmin(ModelAdmin):
     list_display = ('name', 'status', 'created_at')
+    list_display_links = ('name', 'status')    
     search_fields = ('name',)
     list_filter = ('status', 'created_at')
     exclude = ('user',)  # Hide the user field from the form
