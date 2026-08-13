@@ -95,10 +95,14 @@ class MovementAdmin(ModelAdmin):
                 .exclude(status=Account.Status.CLOSED)
                 .order_by('name')
             )
-            kwargs["empty_label"] = None
         if db_field.name == "category":
             kwargs["queryset"] = Category.objects.filter(user=request.user).exclude(active=False).order_by('name')
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+        formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
+        # Unfold forza empty_label="Select value" internamente; lo azzeriamo qui
+        # direttamente sull'oggetto restituito per rimuovere l'opzione vuota.
+        if db_field.name == "account" and formfield is not None:
+            formfield.empty_label = None
+        return formfield
 
     def changelist_view(self, request, extra_context=None):
         from django.db.models import Sum
