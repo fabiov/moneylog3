@@ -184,7 +184,7 @@ class Provision(models.Model):
     class Meta:
         db_table = 'provisions'
         verbose_name = 'Provvigione'
-        verbose_name_plural = 'Provvigioni'
+        verbose_name_plural = 'Accantonamenti'
         ordering = ['-date']
 
     def __str__(self) -> str:

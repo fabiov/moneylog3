@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'verbose_name': 'Provvigione',
-                'verbose_name_plural': 'Provvigioni',
+                'verbose_name_plural': 'Accantonamenti',
                 'db_table': 'provisions',
                 'ordering': ['-date'],
             },

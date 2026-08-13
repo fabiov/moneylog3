@@ -195,7 +195,7 @@ UNFOLD = {
                         "link": "/admin/moneylog/movement/",
                     },
                     {
-                        "title": "Provvigioni",
+                        "title": "Accantonamenti",
                         "icon": "savings",
                         "link": "/admin/moneylog/provision/",
                     },

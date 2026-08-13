@@ -58,7 +58,7 @@ class MovementAdmin(ModelAdmin):
     @admin.display(description="Importo", ordering="amount")
     def amount_display(self, obj):
         from django.utils.html import format_html
-        return format_html('<div class="text-right w-full block">{} €</div>', intcomma(obj.amount))
+        return format_html('<div class="text-right w-full block whitespace-nowrap">{} €</div>', intcomma(obj.amount))
     search_fields = ('description',)
     list_filter = (
         ('date', RangeDateFilter),
@@ -196,7 +196,7 @@ class ProvisionAdmin(ModelAdmin):
     @admin.display(description="Importo", ordering="amount")
     def amount_display(self, obj):
         from django.utils.html import format_html
-        return format_html('<div class="text-right w-full block">{} €</div>', intcomma(obj.amount))
+        return format_html('<div class="text-right w-full block whitespace-nowrap">{} €</div>', intcomma(obj.amount))
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(user=request.user)
