@@ -170,6 +170,30 @@ UNFOLD = {
     "SITE_TITLE": "MoneyLog",
     "SITE_SYMBOL": "account_balance_wallet", # Nome dell'icona Material Symbols
     "THEME": "light",
+    "SITE_FAVICONS": [
+        {
+            "rel": "icon",
+            "type": "image/x-icon",
+            "href": "/static/images/favicon.ico",
+        },
+        {
+            "rel": "icon",
+            "type": "image/png",
+            "sizes": "32x32",
+            "href": "/static/images/favicon-32x32.png",
+        },
+        {
+            "rel": "icon",
+            "type": "image/png",
+            "sizes": "16x16",
+            "href": "/static/images/favicon-16x16.png",
+        },
+        {
+            "rel": "apple-touch-icon",
+            "sizes": "180x180",
+            "href": "/static/images/icon-180.png",
+        },
+    ],
     "DASHBOARD_CALLBACK": "moneylog.dashboard.dashboard_callback",
     "SIDEBAR": {
         "show_search": False,  # Search in applications and models names
