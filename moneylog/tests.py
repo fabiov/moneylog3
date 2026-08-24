@@ -37,7 +37,7 @@ class TransferTestCase(TestCase):
             }
         )
         self.assertFalse(form_same.is_valid())
-        self.assertIn("non possono coincidere", str(form_same.errors))
+        self.assertIn("devono essere diversi", str(form_same.errors))
 
         # Test valid transfer form
         form_valid = TransferForm(

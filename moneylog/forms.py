@@ -16,12 +16,14 @@ class TransferForm(BaseDialogForm):
         queryset=Account.objects.none(),
         label="Conto Origine (Uscita)",
         required=True,
+        empty_label=None,
         widget=UnfoldAdminSelectWidget,
     )
     to_account = forms.ModelChoiceField(
         queryset=Account.objects.none(),
         label="Conto Destinazione (Entrata)",
         required=True,
+        empty_label=None,
         widget=UnfoldAdminSelectWidget,
     )
     amount = forms.DecimalField(
@@ -51,7 +53,9 @@ class TransferForm(BaseDialogForm):
         if request and hasattr(request, 'user') and request.user.is_authenticated:
             accounts_qs = Account.objects.filter(user=request.user).exclude(status=Account.Status.CLOSED).order_by('name')
             self.fields['from_account'].queryset = accounts_qs
+            self.fields['from_account'].empty_label = None
             self.fields['to_account'].queryset = accounts_qs
+            self.fields['to_account'].empty_label = None
 
             main_account = accounts_qs.filter(status=Account.Status.MAIN).first()
             if main_account:
@@ -64,9 +68,11 @@ class TransferForm(BaseDialogForm):
         amount = cleaned_data.get('amount')
 
         if from_account and to_account and from_account == to_account:
-            raise forms.ValidationError("Il conto di origine e di destinazione non possono coincidere.")
+            self.add_error('to_account', "Il conto di destinazione deve essere diverso dal conto di origine.")
+            raise forms.ValidationError("Il conto di origine e il conto di destinazione devono essere diversi.")
 
         if amount is not None and amount <= 0:
+            self.add_error('amount', "L'importo del giroconto deve essere maggiore di zero.")
             raise forms.ValidationError("L'importo del giroconto deve essere maggiore di zero.")
 
         return cleaned_data

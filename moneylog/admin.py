@@ -82,6 +82,14 @@ class MovementAdmin(ModelAdmin):
         date = form.cleaned_data['date']
         description = form.cleaned_data['description']
 
+        if from_account == to_account:
+            self.message_user(
+                request,
+                "Il conto di origine e il conto di destinazione devono essere diversi.",
+                level=messages.ERROR,
+            )
+            return HttpResponseRedirect(request.get_full_path())
+
         with transaction.atomic():
             out_movement = Movement.objects.create(
                 account=from_account,
