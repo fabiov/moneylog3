@@ -6,10 +6,14 @@ admin.site.site_title = "MoneyLog"
 admin.site.index_title = "Cruscotto MoneyLog"
 
 from django.contrib.humanize.templatetags.humanize import intcomma
-from django.http import HttpResponseRedirect
+from django.db import transaction
+from django.contrib import messages
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from unfold.admin import ModelAdmin
 from unfold.contrib.filters.admin import RangeDateFilter, RangeNumericFilter, RelatedDropdownFilter
+from unfold.decorators import action
+from .forms import TransferForm
 
 class UserRelatedDropdownFilter(RelatedDropdownFilter):
     def field_choices(self, field, request, model_admin):
@@ -54,11 +58,79 @@ class CategoryAdmin(ModelAdmin):
 class MovementAdmin(ModelAdmin):
     list_display = ('date', 'description', 'amount_display', 'account', 'category')
     list_display_links = ('date', 'description', 'amount_display')
+    actions_list = ["make_transfer"]
 
     @admin.display(description="Importo", ordering="amount")
     def amount_display(self, obj):
         from django.utils.html import format_html
         return format_html('<div class="text-right w-full block whitespace-nowrap">{} €</div>', intcomma(obj.amount))
+
+    @action(
+        description="Nuovo Giroconto",
+        icon="swap_horiz",
+        dialog={
+            "title": "Nuovo Giroconto",
+            "description": "Effettua un trasferimento di fondi tra due conti in un'unica operazione.",
+            "form_class": TransferForm,
+            "form_submit_text": "Esegui Giroconto",
+        }
+    )
+    def make_transfer(self, request, form):
+        from_account = form.cleaned_data['from_account']
+        to_account = form.cleaned_data['to_account']
+        amount = form.cleaned_data['amount']
+        date = form.cleaned_data['date']
+        description = form.cleaned_data['description']
+
+        changelist_url = reverse(f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_changelist")
+        referer = request.META.get('HTTP_REFERER')
+        if referer and changelist_url in referer and 'make_transfer' not in referer:
+            redirect_url = referer
+        else:
+            redirect_url = changelist_url
+
+        if from_account == to_account:
+            self.message_user(
+                request,
+                "Il conto di origine e il conto di destinazione devono essere diversi.",
+                level=messages.ERROR,
+            )
+            if request.headers.get("HX-Request"):
+                response = HttpResponse(status=200)
+                response["HX-Redirect"] = redirect_url
+                return response
+            return HttpResponseRedirect(redirect_url)
+
+        with transaction.atomic():
+            out_movement = Movement.objects.create(
+                account=from_account,
+                amount=-abs(amount),
+                date=date,
+                description=f"{description} (→ {to_account.name})",
+            )
+            in_movement = Movement.objects.create(
+                account=to_account,
+                amount=abs(amount),
+                date=date,
+                description=f"{description} (← {from_account.name})",
+                related_movement=out_movement,
+            )
+            out_movement.related_movement = in_movement
+            out_movement.save(update_fields=['related_movement'])
+
+        self.message_user(
+            request,
+            f"Giroconto di {amount} € da '{from_account.name}' a '{to_account.name}' registrato con successo.",
+            level=messages.SUCCESS,
+        )
+
+        if request.headers.get("HX-Request"):
+            response = HttpResponse(status=200)
+            response["HX-Redirect"] = redirect_url
+            return response
+
+        return HttpResponseRedirect(redirect_url)
+
     search_fields = ('description',)
     list_filter = (
         ('date', RangeDateFilter),
@@ -118,6 +190,29 @@ class MovementAdmin(ModelAdmin):
         extra_context = extra_context or {}
         extra_context['active_accounts_balances'] = accounts_data
         return super().changelist_view(request, extra_context=extra_context)
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if change and obj.related_movement:
+            rel = obj.related_movement
+            rel.amount = -obj.amount
+            rel.date = obj.date
+            rel.save(update_fields=['amount', 'date', 'updated_at'])
+
+    def delete_model(self, request, obj):
+        rel = obj.related_movement
+        super().delete_model(request, obj)
+        if rel and Movement.objects.filter(pk=rel.pk).exists():
+            rel.delete()
+
+    def delete_queryset(self, request, queryset):
+        related_ids = list(
+            queryset.filter(related_movement__isnull=False)
+            .values_list('related_movement_id', flat=True)
+        )
+        queryset.delete()
+        if related_ids:
+            Movement.objects.filter(pk__in=related_ids).delete()
 
 
 @admin.register(Setting)

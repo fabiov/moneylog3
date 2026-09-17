@@ -98,6 +98,14 @@ class Movement(models.Model):
     date = models.DateField(verbose_name="Data")
     amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Importo")
     description = models.CharField(max_length=255, verbose_name="Descrizione")
+    related_movement = models.OneToOneField(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='transfer_pair',
+        verbose_name="Movimento correlato"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creato il")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Aggiornato il")
 
