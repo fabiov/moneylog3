@@ -79,6 +79,25 @@ class TransferTestCase(TestCase):
         self.assertEqual(out_mov.related_movement, in_mov)
         self.assertEqual(in_mov.related_movement, out_mov)
 
+    def test_make_transfer_action_htmx(self):
+        post_data = {
+            'from_account': str(self.account_from.pk),
+            'to_account': str(self.account_to.pk),
+            'amount': '300.00',
+            'date': '2026-08-25',
+            'description': 'Giroconto HTMX',
+            '_form_submitted': 'True',
+        }
+        req = self.factory.post('/admin/moneylog/movement/make_transfer/', data=post_data, HTTP_HX_REQUEST='true')
+        req.user = self.user
+        setattr(req, 'session', 'session')
+        messages = FallbackStorage(req)
+        setattr(req, '_messages', messages)
+
+        response = self.admin.make_transfer(req)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get('HX-Redirect'), '/admin/moneylog/movement/')
+
     def test_sync_save_model(self):
         req = self.factory.get('/')
         req.user = self.user

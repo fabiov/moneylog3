@@ -8,7 +8,7 @@ admin.site.index_title = "Cruscotto MoneyLog"
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.db import transaction
 from django.contrib import messages
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from unfold.admin import ModelAdmin
 from unfold.contrib.filters.admin import RangeDateFilter, RangeNumericFilter, RelatedDropdownFilter
@@ -82,13 +82,24 @@ class MovementAdmin(ModelAdmin):
         date = form.cleaned_data['date']
         description = form.cleaned_data['description']
 
+        changelist_url = reverse(f"admin:{self.model._meta.app_label}_{self.model._meta.model_name}_changelist")
+        referer = request.META.get('HTTP_REFERER')
+        if referer and changelist_url in referer and 'make_transfer' not in referer:
+            redirect_url = referer
+        else:
+            redirect_url = changelist_url
+
         if from_account == to_account:
             self.message_user(
                 request,
                 "Il conto di origine e il conto di destinazione devono essere diversi.",
                 level=messages.ERROR,
             )
-            return HttpResponseRedirect(request.get_full_path())
+            if request.headers.get("HX-Request"):
+                response = HttpResponse(status=200)
+                response["HX-Redirect"] = redirect_url
+                return response
+            return HttpResponseRedirect(redirect_url)
 
         with transaction.atomic():
             out_movement = Movement.objects.create(
@@ -112,7 +123,13 @@ class MovementAdmin(ModelAdmin):
             f"Giroconto di {amount} € da '{from_account.name}' a '{to_account.name}' registrato con successo.",
             level=messages.SUCCESS,
         )
-        return HttpResponseRedirect(request.get_full_path())
+
+        if request.headers.get("HX-Request"):
+            response = HttpResponse(status=200)
+            response["HX-Redirect"] = redirect_url
+            return response
+
+        return HttpResponseRedirect(redirect_url)
 
     search_fields = ('description',)
     list_filter = (
