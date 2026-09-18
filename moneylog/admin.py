@@ -13,11 +13,24 @@ from django.urls import reverse
 from unfold.admin import ModelAdmin
 from unfold.contrib.filters.admin import RangeDateFilter, RangeNumericFilter, RelatedDropdownFilter
 from unfold.decorators import action
-from .forms import TransferForm
+from .forms import TransferForm, GroupedModelChoiceField
 
 class UserRelatedDropdownFilter(RelatedDropdownFilter):
     def field_choices(self, field, request, model_admin):
         return field.get_choices(include_blank=False, limit_choices_to={'user': request.user})
+
+class AccountGroupDropdownFilter(RelatedDropdownFilter):
+    def field_choices(self, field, request, model_admin):
+        active = Account.objects.filter(user=request.user).exclude(status=Account.Status.CLOSED).order_by('name')
+        closed = Account.objects.filter(user=request.user, status=Account.Status.CLOSED).order_by('name')
+        choices = []
+        active_choices = [(str(a.pk), str(a)) for a in active]
+        if active_choices:
+            choices.append(('Attivi', active_choices))
+        closed_choices = [(str(a.pk), str(a)) for a in closed]
+        if closed_choices:
+            choices.append(('Chiusi', closed_choices))
+        return choices
 
 @admin.register(Account)
 class AccountAdmin(ModelAdmin):
@@ -136,7 +149,7 @@ class MovementAdmin(ModelAdmin):
         ('date', RangeDateFilter),
         ('amount', RangeNumericFilter),
         ('category', UserRelatedDropdownFilter),
-        ('account', UserRelatedDropdownFilter)
+        ('account', AccountGroupDropdownFilter)
     )
     list_filter_submit = True
     list_before_template = "admin/moneylog/movement/accounts_cards.html"
@@ -161,12 +174,8 @@ class MovementAdmin(ModelAdmin):
     # to show only the Accounts and Categories of the logged-in user.
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "account":
-            kwargs["queryset"] = (
-                Account.objects
-                .filter(user=request.user)
-                .exclude(status=Account.Status.CLOSED)
-                .order_by('name')
-            )
+            kwargs["queryset"] = Account.objects.filter(user=request.user)
+            kwargs["form_class"] = GroupedModelChoiceField
         if db_field.name == "category":
             kwargs["queryset"] = Category.objects.filter(user=request.user).exclude(active=False).order_by('name')
         formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)

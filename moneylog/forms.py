@@ -11,15 +11,35 @@ from unfold.widgets import (
 from .models import Account
 
 
+class GroupedModelChoiceIterator(forms.models.ModelChoiceIterator):
+    def __iter__(self):
+        if self.field.empty_label is not None:
+            yield ('', self.field.empty_label)
+
+        active_qs = self.queryset.exclude(status=Account.Status.CLOSED).order_by('name')
+        active_choices = [self.choice(obj) for obj in active_qs]
+        if active_choices:
+            yield ('Attivi', active_choices)
+
+        closed_qs = self.queryset.filter(status=Account.Status.CLOSED).order_by('name')
+        closed_choices = [self.choice(obj) for obj in closed_qs]
+        if closed_choices:
+            yield ('Chiusi', closed_choices)
+
+
+class GroupedModelChoiceField(forms.ModelChoiceField):
+    iterator = GroupedModelChoiceIterator
+
+
 class TransferForm(BaseDialogForm):
-    from_account = forms.ModelChoiceField(
+    from_account = GroupedModelChoiceField(
         queryset=Account.objects.none(),
         label="Conto Origine (Uscita)",
         required=True,
         empty_label=None,
         widget=UnfoldAdminSelectWidget,
     )
-    to_account = forms.ModelChoiceField(
+    to_account = GroupedModelChoiceField(
         queryset=Account.objects.none(),
         label="Conto Destinazione (Entrata)",
         required=True,
@@ -51,7 +71,7 @@ class TransferForm(BaseDialogForm):
     def __init__(self, request, object_id=None, *args, **kwargs):
         super().__init__(request, object_id=object_id, *args, **kwargs)
         if request and hasattr(request, 'user') and request.user.is_authenticated:
-            accounts_qs = Account.objects.filter(user=request.user).exclude(status=Account.Status.CLOSED).order_by('name')
+            accounts_qs = Account.objects.filter(user=request.user)
             self.fields['from_account'].queryset = accounts_qs
             self.fields['from_account'].empty_label = None
             self.fields['to_account'].queryset = accounts_qs

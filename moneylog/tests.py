@@ -151,3 +151,55 @@ class TransferTestCase(TestCase):
 
         self.assertFalse(Movement.objects.filter(pk=out_mov.pk).exists())
         self.assertFalse(Movement.objects.filter(pk=in_mov.pk).exists())
+
+
+class AccountGroupingTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.create_superuser(username='opt_user', password='password123')
+        self.acc_active_b = Account.objects.create(name='B Conto Attivo', user=self.user, status=Account.Status.OPEN)
+        self.acc_active_a = Account.objects.create(name='A Conto Attivo', user=self.user, status=Account.Status.MAIN)
+        self.acc_closed_z = Account.objects.create(name='Z Conto Chiuso', user=self.user, status=Account.Status.CLOSED)
+        self.acc_closed_c = Account.objects.create(name='C Conto Chiuso', user=self.user, status=Account.Status.CLOSED)
+        self.site = AdminSite()
+        self.admin = MovementAdmin(Movement, self.site)
+
+    def test_grouped_model_choice_field(self):
+        from .forms import GroupedModelChoiceField
+        field = GroupedModelChoiceField(queryset=Account.objects.filter(user=self.user), empty_label=None)
+        choices = list(field.choices)
+
+        self.assertEqual(len(choices), 2)
+        group1_label, group1_choices = choices[0]
+        group2_label, group2_choices = choices[1]
+
+        self.assertEqual(group1_label, 'Attivi')
+        self.assertEqual(group2_label, 'Chiusi')
+
+        group1_names = [name for val, name in group1_choices]
+        group2_names = [name for val, name in group2_choices]
+
+        self.assertEqual(group1_names, ['A Conto Attivo', 'B Conto Attivo'])
+        self.assertEqual(group2_names, ['C Conto Chiuso', 'Z Conto Chiuso'])
+
+    def test_account_group_dropdown_filter(self):
+        from .admin import AccountGroupDropdownFilter
+        req = self.factory.get('/admin/moneylog/movement/')
+        req.user = self.user
+        field = Movement._meta.get_field('account')
+        filter_inst = AccountGroupDropdownFilter(field, req, {}, Movement, self.admin, 'account')
+        choices = filter_inst.field_choices(field, req, self.admin)
+
+        self.assertEqual(len(choices), 2)
+        group1_label, group1_choices = choices[0]
+        group2_label, group2_choices = choices[1]
+
+        self.assertEqual(group1_label, 'Attivi')
+        self.assertEqual(group2_label, 'Chiusi')
+
+        group1_names = [name for pk, name in group1_choices]
+        group2_names = [name for pk, name in group2_choices]
+
+        self.assertEqual(group1_names, ['A Conto Attivo', 'B Conto Attivo'])
+        self.assertEqual(group2_names, ['C Conto Chiuso', 'Z Conto Chiuso'])
+
