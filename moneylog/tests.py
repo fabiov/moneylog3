@@ -203,3 +203,24 @@ class AccountGroupingTestCase(TestCase):
         self.assertEqual(group1_names, ['A Conto Attivo', 'B Conto Attivo'])
         self.assertEqual(group2_names, ['C Conto Chiuso', 'Z Conto Chiuso'])
 
+
+class ProvisionAdminTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.create_superuser(username='provision_admin', password='password123')
+        self.site = AdminSite()
+        from .admin import ProvisionAdmin
+        from .models import Provision
+        self.admin = ProvisionAdmin(Provision, self.site)
+
+    def test_provision_form_fields_order(self):
+        self.assertEqual(self.admin.fields, ('amount', 'description', 'date'))
+
+    def test_provision_initial_date(self):
+        req = self.factory.get('/admin/moneylog/provision/add/')
+        req.user = self.user
+        initial = self.admin.get_changeform_initial_data(req)
+        self.assertIn('date', initial)
+        self.assertEqual(initial['date'], timezone.localdate())
+
+

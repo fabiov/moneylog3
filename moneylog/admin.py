@@ -287,6 +287,7 @@ class SettingAdmin(ModelAdmin):
 
 @admin.register(Provision)
 class ProvisionAdmin(ModelAdmin):
+    fields = ('amount', 'description', 'date')
     list_display = ('date', 'description', 'amount_display')
     list_display_links = ('date', 'description', 'amount_display')
     search_fields = ('description',)
@@ -301,6 +302,13 @@ class ProvisionAdmin(ModelAdmin):
     def amount_display(self, obj):
         from django.utils.html import format_html
         return format_html('<div class="text-right w-full block whitespace-nowrap">{} €</div>', intcomma(obj.amount))
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        if 'date' not in initial:
+            from django.utils import timezone
+            initial['date'] = timezone.localdate()
+        return initial
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(user=request.user)

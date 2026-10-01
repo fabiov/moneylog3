@@ -173,14 +173,13 @@ class Provision(models.Model):
         verbose_name='Utente'
     )
     date = models.DateField(
+        default=timezone.localdate,
         verbose_name='Data',
-        help_text='Data di competenza della provvigione',
     )
     amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         verbose_name='Importo',
-        help_text='Importo della provvigione (positivo = entrata, negativo = uscita)',
     )
     description = models.CharField(
         max_length=255,
