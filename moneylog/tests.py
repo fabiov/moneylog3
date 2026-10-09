@@ -203,6 +203,20 @@ class AccountGroupingTestCase(TestCase):
         self.assertEqual(group1_names, ['A Conto Attivo', 'B Conto Attivo'])
         self.assertEqual(group2_names, ['C Conto Chiuso', 'Z Conto Chiuso'])
 
+    def test_user_related_dropdown_filter_alphabetical(self):
+        from .admin import UserRelatedDropdownFilter
+        Category.objects.create(name='Zebra', user=self.user)
+        Category.objects.create(name='Alimentari', user=self.user)
+        Category.objects.create(name='Bollette', user=self.user)
+
+        req = self.factory.get('/admin/moneylog/movement/')
+        req.user = self.user
+        field = Movement._meta.get_field('category')
+        filter_inst = UserRelatedDropdownFilter(field, req, {}, Movement, self.admin, 'category')
+        choices = filter_inst.field_choices(field, req, self.admin)
+        names = [name for pk, name in choices]
+        self.assertEqual(names, ['Alimentari', 'Bollette', 'Zebra'])
+
 
 class ProvisionAdminTestCase(TestCase):
     def setUp(self):

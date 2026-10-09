@@ -17,7 +17,8 @@ from .forms import TransferForm, GroupedModelChoiceField
 
 class UserRelatedDropdownFilter(RelatedDropdownFilter):
     def field_choices(self, field, request, model_admin):
-        return field.get_choices(include_blank=False, limit_choices_to={'user': request.user})
+        choices = field.get_choices(include_blank=False, limit_choices_to={'user': request.user})
+        return sorted(choices, key=lambda x: str(x[1]).lower())
 
 class AccountGroupDropdownFilter(RelatedDropdownFilter):
     def field_choices(self, field, request, model_admin):
