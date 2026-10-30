@@ -1,0 +1,42 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="max-w-3xl bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+    <p class="mb-4 text-sm text-gray-600 dark:text-gray-300">
+        Usa questo token per autenticare le applicazioni esterne. Invialo solo
+        nell'intestazione HTTP <code>Authorization: Token &lt;token&gt;</code>,
+        mai nell'URL.
+    </p>
+
+    {% if token %}
+        <label for="api-token" class="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Token attuale</label>
+        <div class="flex gap-2 mb-6">
+            <input id="api-token" type="text" readonly value="{{ token.key }}"
+                   class="flex-1 font-mono text-sm border border-gray-200 dark:border-gray-700 rounded-md px-3 py-2 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
+            <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('api-token').value)"
+                    class="border border-gray-200 dark:border-gray-700 rounded-md px-3 py-2 text-sm">
+                <span class="material-symbols-outlined text-sm">content_copy</span>
+            </button>
+        </div>
+        <p class="mb-6 text-xs text-gray-500 dark:text-gray-400">Creato il {{ token.created|date:"d/m/Y H:i" }}</p>
+    {% else %}
+        <p class="mb-6 text-sm font-semibold text-gray-900 dark:text-white">Nessun token attivo.</p>
+    {% endif %}
+
+    <form method="post" class="flex gap-3">
+        {% csrf_token %}
+        <button type="submit" name="action" value="generate"
+                {% if token %}onclick="return confirm('Il token attuale smetterà di funzionare. Continuare?')"{% endif %}
+                class="bg-primary-600 text-white font-semibold rounded-md px-4 py-2 text-sm">
+            {% if token %}Rigenera token{% else %}Genera token{% endif %}
+        </button>
+        {% if token %}
+        <button type="submit" name="action" value="revoke"
+                onclick="return confirm('Revocare il token?')"
+                class="border border-red-500 text-red-600 font-semibold rounded-md px-4 py-2 text-sm">
+            Revoca token
+        </button>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

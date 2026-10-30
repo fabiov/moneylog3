@@ -1,5 +1,9 @@
 from .models import Category, Movement, Account, Setting, Provision
 from django.contrib import admin
+from rest_framework.authtoken.models import TokenProxy
+
+# Tokens are managed per user from the "Token API" page, not via the generic admin.
+admin.site.unregister(TokenProxy)
 
 admin.site.site_header = "MoneyLog"
 admin.site.site_title = "MoneyLog"
