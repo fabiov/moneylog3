@@ -2,9 +2,10 @@
 
 MoneyLog is a personal finance application written in Python with Django. Its
 interface is built on Django Admin, customized with
-[Django Unfold](https://unfoldadmin.com/), rather than a separate frontend or REST
-API. The UI is in Italian, displays amounts in euros, and uses the `Europe/Rome`
-time zone.
+[Django Unfold](https://unfoldadmin.com/). A small token-authenticated REST API
+(Django REST Framework) lets external applications read accounts/categories and
+record expenses and incomes. The UI is in Italian, displays amounts in euros, and
+uses the `Europe/Rome` time zone.
 
 ## Features
 
@@ -20,6 +21,8 @@ time zone.
   for payday, the averaging window, and provisioning statistics.
 - Use a web app manifest and service worker for home-screen installation and
   cached pages/assets. This is not a full offline transaction-entry workflow.
+- Integrate external applications through the [REST API](#rest-api), using a
+  personal token generated from the **Token API** page.
 
 Financial admin lists and dashboard calculations are scoped to the logged-in user.
 
@@ -29,7 +32,7 @@ Financial admin lists and dashboard calculations are scoped to the logged-in use
 .
 |-- core/                       Django project configuration
 |   |-- settings.py             Apps, databases, localization, static files, Unfold
-|   |-- urls.py                 Admin, home redirect, manifest, and service worker
+|   |-- urls.py                 Admin, token page, API, home redirect, manifest, service worker
 |   |-- asgi.py                 ASGI entry point
 |   `-- wsgi.py                 WSGI entry point used by Gunicorn
 |-- moneylog/                   Main Django application
@@ -37,14 +40,17 @@ Financial admin lists and dashboard calculations are scoped to the logged-in use
 |   |-- admin.py                User-scoped admin, filters, transfers, balance cards
 |   |-- forms.py                Transfer dialog and grouped account selectors
 |   |-- dashboard.py            Dashboard aggregations and budget calculations
+|   |-- api/                    REST API serializers, views, and URLs (/api/v1/)
+|   |-- token_views.py          Personal API token page (generate/regenerate/revoke)
 |   |-- management/commands/
 |   |   `-- copy_data.py         Legacy MySQL data import
 |   |-- migrations/             Database schema migrations
 |   |-- static/                 Icons and favicons
 |   |-- tests.py                Transfer, account grouping, and provision admin tests
-|   `-- test_dashboard.py       Dashboard tests
+|   |-- test_dashboard.py       Dashboard tests
+|   `-- test_api.py             REST API and token page tests
 |-- templates/                  Django Admin and Unfold template overrides
-|   |-- admin/                  Dashboard, branding, forms, and account cards
+|   |-- admin/                  Dashboard, branding, forms, account cards, token page
 |   |-- unfold/                 Layout override
 |   |-- manifest.json           Web app metadata
 |   `-- sw.js                   Service worker
@@ -59,8 +65,8 @@ Financial admin lists and dashboard calculations are scoped to the logged-in use
 `-- set_pass.py                 Hard-coded local password/privilege helper
 ```
 
-Requests to `/` redirect to `/admin/`. Django Admin handles the application pages;
-`moneylog/views.py` is currently a placeholder. Unfold calls
+Requests to `/` redirect to `/admin/`. Django Admin handles the application pages
+and `/api/v1/` serves the REST API; `moneylog/views.py` is currently a placeholder. Unfold calls
 `moneylog.dashboard.dashboard_callback` to populate the custom dashboard template.
 Static files are collected into the generated `staticfiles/` directory and served
 with WhiteNoise when running the application directly.
@@ -134,17 +140,80 @@ volume. Switching database configuration does not copy existing SQLite data.
 Run the application test modules explicitly:
 
 ```bash
-.venv/bin/python manage.py test moneylog.tests moneylog.test_dashboard
+.venv/bin/python manage.py test moneylog.tests moneylog.test_dashboard moneylog.test_api
 ```
 
 These cover transfer validation and synchronization, grouped account choices,
-provision admin defaults, and dashboard calculations. The root-level `test_*.py`
+provision admin defaults, dashboard calculations, and the REST API and token page. The root-level `test_*.py`
 files are diagnostic scripts, not an isolated test suite; several query existing
 users and data at import time. Avoid unqualified test discovery when you only
 intend to run the application tests.
 
 `pyrightconfig.json` contains machine-specific paths; adjust them to your local
 environment before using Pyright.
+
+## REST API
+
+Base URL: `/api/v1/`. Requests and responses are JSON.
+
+### Authentication
+
+1. Log in to the admin and open **Token API** (sidebar, *Account* section).
+2. Click **Genera token**. Each user has one token; **Rigenera token** replaces it
+   (the old one stops working immediately) and **Revoca token** deletes it.
+3. Send the token on **every** request, GET included, in the HTTP header:
+
+   ```http
+   Authorization: Token <your-token>
+   ```
+
+The token is accepted only in this header, never in the URL or request body, so
+proxy and server access logs don't record it. Admin login sessions are not
+accepted by the API. Missing or invalid tokens return `401`. Tokens do not expire
+and are stored in plain text in the database, so always use HTTPS in production.
+
+### Endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `accounts/` | Your accounts: `id`, `name`, `status` (`open`, `main`, `closed`). |
+| `GET` | `categories/` | Your active categories: `id`, `name`, `active`. Add `?all=1` to include inactive ones. |
+| `POST` | `categories/` | Create a category: `{"name": "..."}`. Returns `400` if a category with the same name (case-insensitive) already exists. |
+| `POST` | `expenses/` | Record an expense. The amount is stored as **negative**. |
+| `POST` | `incomes/` | Add funds to an account. Same body as expenses; the amount is stored as **positive**. |
+
+Expense and income body:
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `amount` | yes | Positive decimal, e.g. `"12.50"`; the sign is applied by the endpoint. |
+| `description` | yes | Up to 255 characters. |
+| `account_id` | yes | One of your accounts from `GET accounts/`; closed accounts are rejected. |
+| `category_id` | one of | An existing active category of yours. |
+| `category_name` | one of | Matched case-insensitively among your categories; created if it doesn't exist. |
+| `date` | no | `YYYY-MM-DD`; defaults to today. |
+
+Send exactly one of `category_id` or `category_name`. A name matching an inactive
+category returns `400` instead of reactivating it. Category creation and the
+movement are saved in one transaction, so a failed request creates nothing.
+
+The response (`201`) contains `id`, `account_id`, `category_id`, `category_name`,
+`category_created` (true when a new category was created), `date`, the signed
+`amount`, and `description`. Validation errors return `400` with field messages.
+
+### Example: expense in a new category
+
+```bash
+curl -X POST https://<host>/api/v1/expenses/ \
+  -H "Authorization: Token $MONEYLOG_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"amount": "45.90", "description": "Pieno", "account_id": 1, "category_name": "Benzina"}'
+```
+
+```json
+{"id": 812, "account_id": 1, "category_id": 14, "category_name": "Benzina",
+ "category_created": true, "date": "2026-10-30", "amount": "-45.90", "description": "Pieno"}
+```
 
 ## Importing legacy MoneyLog data
 

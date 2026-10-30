@@ -46,8 +46,28 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
     'moneylog',
 ]
+
+# The token is accepted only via the "Authorization: Token <key>" header,
+# never via query string or body, so it does not end up in proxy logs.
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+    'UNAUTHENTICATED_USER': None,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -233,6 +253,11 @@ UNFOLD = {
                         "title": "Preferenze",
                         "icon": "tune",
                         "link": "/admin/moneylog/setting/",
+                    },
+                    {
+                        "title": "Token API",
+                        "icon": "key",
+                        "link": "/admin/api-token/",
                     },
                 ],
             },

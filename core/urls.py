@@ -15,11 +15,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from django.views.generic.base import RedirectView, TemplateView
 
+from moneylog.token_views import api_token_view
+
 urlpatterns = [
+    path('admin/api-token/', admin.site.admin_view(api_token_view), name='api_token'),
     path('admin/', admin.site.urls),
+    path('api/v1/', include('moneylog.api.urls')),
     path('', RedirectView.as_view(url='/admin/', permanent=False), name='home'),
     path('manifest.json', TemplateView.as_view(template_name='manifest.json', content_type='application/json'), name='manifest'),
     path('sw.js', TemplateView.as_view(template_name='sw.js', content_type='application/javascript'), name='sw'),
