@@ -221,9 +221,8 @@ def dashboard_callback(request, context):
 
     if today < current_month_payday:
         next_payday = current_month_payday
-    elif today == current_month_payday:
-        next_payday = today
     else:
+        # today == payday or today > payday: always point to next month
         next_month_date = today + relativedelta(months=1)
         try:
             next_payday = next_month_date.replace(day=payday_day)
