@@ -1,5 +1,5 @@
 {% extends "admin/index.html" %}
-{% load i18n unfold %}
+{% load i18n unfold moneylog_filters %}
 
 {% block content %}
     <!-- Include Chart.js for charts -->
@@ -30,7 +30,7 @@
                 <span class="material-symbols-outlined">account_balance_wallet</span>
                 <h3 class="text-xs font-semibold uppercase tracking-wider">Patrimonio Totale</h3>
             </div>
-            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ total_balance|floatformat:2 }}</div>
+            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ total_balance|itatformat:2 }}</div>
         </div>
 
         <!-- Accantonati Disponibili Card -->
@@ -39,7 +39,7 @@
                 <span class="material-symbols-outlined">savings</span>
                 <h3 class="text-xs font-semibold uppercase tracking-wider">Accantonati Disponibili</h3>
             </div>
-            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ provisioned_total|floatformat:2 }}</div>
+            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ provisioned_total|itatformat:2 }}</div>
         </div>
 
         <!-- Spendable Total Card -->
@@ -48,7 +48,7 @@
                 <span class="material-symbols-outlined">payments</span>
                 <h3 class="text-xs font-semibold uppercase tracking-wider">Totale Spendibile</h3>
             </div>
-            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ spendable_total|floatformat:2 }}</div>
+            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ spendable_total|itatformat:2 }}</div>
         </div>
 
         <!-- Payday Card -->
@@ -68,7 +68,7 @@
                 <span class="material-symbols-outlined">calculate</span>
                 <h3 class="text-xs font-semibold uppercase tracking-wider">Budget Giornaliero</h3>
             </div>
-            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ daily_budget|floatformat:2 }}</div>
+            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ daily_budget|itatformat:2 }}</div>
         </div>
 
         <!-- Income Card -->
@@ -77,7 +77,7 @@
                 <span class="material-symbols-outlined">arrow_downward</span>
                 <h3 class="text-xs font-semibold uppercase tracking-wider">Entrate del Mese</h3>
             </div>
-            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ month_income|floatformat:2 }}</div>
+            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ month_income|itatformat:2 }}</div>
         </div>
 
         <!-- Expense Card -->
@@ -86,7 +86,7 @@
                 <span class="material-symbols-outlined">arrow_upward</span>
                 <h3 class="text-xs font-semibold uppercase tracking-wider">Uscite del Mese</h3>
             </div>
-            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ month_expense|floatformat:2 }}</div>
+            <div class="text-3xl font-bold text-gray-900 dark:text-white">€{{ month_expense|itatformat:2 }}</div>
         </div>
 
         <!-- Savings Card -->
@@ -96,7 +96,7 @@
                 <h3 class="text-xs font-semibold uppercase tracking-wider">Risparmio del Mese</h3>
             </div>
             <div class="text-3xl font-bold {% if month_savings >= 0 %}text-emerald-500{% else %}text-rose-500{% endif %}">
-                €{{ month_savings|floatformat:2 }}
+                €{{ month_savings|itatformat:2 }}
             </div>
         </div>
     </div>
@@ -123,7 +123,7 @@
                     {% if balance_trend_change != 0 %}
                     <div class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold {% if balance_trend_change >= 0 %}bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400{% else %}bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400{% endif %}">
                         <span class="material-symbols-outlined text-sm">{% if balance_trend_change >= 0 %}trending_up{% else %}trending_down{% endif %}</span>
-                        <span>{% if balance_trend_change >= 0 %}+{% endif %}€{{ balance_trend_change|floatformat:2 }} ({% if balance_trend_change >= 0 %}+{% endif %}{{ balance_trend_pct|floatformat:1 }}%)</span>
+                        <span>{% if balance_trend_change >= 0 %}+{% endif %}€{{ balance_trend_change|itatformat:2 }} ({% if balance_trend_change >= 0 %}+{% endif %}{{ balance_trend_pct|itatformat:1 }}%)</span>
                     </div>
                     {% endif %}
                 </div>
@@ -141,12 +141,12 @@
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-bold text-gray-900 dark:text-white">Provisioning</h2>
                     <div class="flex items-center gap-1 text-primary-600 bg-primary-50 dark:bg-primary-900/50 px-2 py-1 rounded text-xs font-semibold">
-                        €{{ provisioning_stats.total_provisions|floatformat:2 }}
+                        €{{ provisioning_stats.total_provisions|itatformat:2 }}
                     </div>
                 </div>
 
                 <div class="text-sm text-gray-500 mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-                    Fabbisogno Mensile Stimato: <strong class="text-gray-900 dark:text-white">€{{ provisioning_stats.total_monthly_needed|floatformat:2 }}</strong>
+                    Fabbisogno Mensile Stimato: <strong class="text-gray-900 dark:text-white">€{{ provisioning_stats.total_monthly_needed|itatformat:2 }}</strong>
                 </div>
 
                 <div class="space-y-3 max-h-64 overflow-y-auto pr-2">
@@ -154,11 +154,11 @@
                         <div class="flex items-start justify-between text-sm">
                             <div>
                                 <span class="block font-medium text-gray-700 dark:text-gray-300">{{ cat.name }}</span>
-                                <span class="text-xs text-gray-500">Budget: €{{ cat.avg|floatformat:2 }}</span>
+                                <span class="text-xs text-gray-500">Budget: €{{ cat.avg|itatformat:2 }}</span>
                             </div>
                             <div class="text-right">
                                 <span class="block font-medium {% if cat.status == 'over' %}text-rose-500{% else %}text-emerald-500{% endif %}">
-                                    €{{ cat.actual|floatformat:2 }}
+                                    €{{ cat.actual|itatformat:2 }}
                                 </span>
                             </div>
                         </div>
@@ -171,7 +171,7 @@
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-5">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-bold text-gray-900 dark:text-white">I tuoi Conti</h2>
-                    <span class="text-lg font-bold text-gray-900 dark:text-white">€{{ total_balance|floatformat:2 }}</span>
+                    <span class="text-lg font-bold text-gray-900 dark:text-white">€{{ total_balance|itatformat:2 }}</span>
                 </div>
                 
                 <ul class="space-y-4">
@@ -185,7 +185,7 @@
                             {% endif %}
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ acc.name }}</span>
                         </div>
-                        <span class="text-sm text-gray-500">€{{ acc.balance|floatformat:2 }} ({{ acc.pct }}%)</span>
+                        <span class="text-sm text-gray-500">€{{ acc.balance|itatformat:2 }} ({{ acc.pct }}%)</span>
                     </li>
                     {% endfor %}
                 </ul>
@@ -198,7 +198,7 @@
                         Media spese per Categoria<br>
                         ({% if setting.months == 1 %}Mese corrente{% else %}Ultimi {{ setting.months }} mesi{% endif %})
                     </h2>
-                    <span class="text-lg font-bold text-gray-900 dark:text-white">€{{ total_month_cat_expense|floatformat:2 }}</span>
+                    <span class="text-lg font-bold text-gray-900 dark:text-white">€{{ total_month_cat_expense|itatformat:2 }}</span>
                 </div>
                 
                 {% if cat_breakdown %}
@@ -207,7 +207,7 @@
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ cat.name }}</span>
-                                <span class="text-sm text-gray-500">€{{ cat.amount|floatformat:2 }} ({{ cat.pct }}%)</span>
+                                <span class="text-sm text-gray-500">€{{ cat.amount|itatformat:2 }} ({{ cat.pct }}%)</span>
                             </div>
                             <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
                                 <div class="bg-rose-500 h-2.5 rounded-full" style="width: {{ cat.pct }}%"></div>
